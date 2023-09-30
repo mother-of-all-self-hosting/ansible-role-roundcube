@@ -1,0 +1,225 @@
+---
+
+# Project source code URL: https://github.com/roundcube/roundcubemail
+
+roundcube_enabled: true
+
+roundcube_identifier: roundcube
+
+roundcube_version: 1.6.3
+# The image variant to use.  We choose the 'apache' variant because
+# 'fpm' and 'fpm-alpine' can introduce security concerns if the user
+# chooses to publish the container port.
+roundcube_variant: 'apache'
+
+# The hostname at which Roundcube is served.
+roundcube_hostname: ''
+
+# The path at which Roundcube is served.
+# This value must either be `/` or not end with a slash (e.g. `/roundcube`).
+roundcube_path_prefix: /
+
+# The roundcube entrypoint script expects to be run as root.
+roundcube_uid: '0'
+roundcube_gid: '0'
+
+roundcube_base_path: "/{{ roundcube_identifier }}"
+roundcube_install_path: "{{ roundcube_base_path }}/install"
+roundcube_config_path: "{{ roundcube_base_path }}/config"
+roundcube_sqlite_db_path: "{{ roundcube_base_path }}/sqlite"
+roundcube_tmp_path: "{{ roundcube_base_path }}/tmp"
+
+roundcube_container_image: "{{ roundcube_container_image_registry_prefix }}roundcube/roundcubemail:{{ roundcube_container_image_tag }}"
+roundcube_container_image_registry_prefix: docker.io/
+roundcube_container_image_tag: "{{ roundcube_version }}-{{ roundcube_variant}}"
+roundcube_container_image_force_pull: "{{ roundcube_container_image.endswith(':latest') }}"
+
+# The base container network. It will be auto-created by this role if it doesn't exist already.
+roundcube_container_network: "{{ roundcube_identifier }}"
+
+# A list of additional container networks that the container would be connected to.
+# The role does not create these networks, so make sure they already exist.
+# Use this to expose this container to another reverse proxy, which runs in a different container network.
+roundcube_container_additional_networks: "{{ roundcube_container_additional_networks_auto + roundcube_container_additional_networks_custom }}"
+roundcube_container_additional_networks_auto: []
+roundcube_container_additional_networks_custom: []
+
+# Valid database types are postgresql and sqlite.
+roundcube_database_type: postgresql
+roundcube_database_hostname: ''
+roundcube_database_port: 5432
+roundcube_database_name: roundcube
+roundcube_database_username: ''
+roundcube_database_password: ''
+
+# Hostname of the IMAP server to connect to. For encypted connections,
+# prefix the host with tls:// (STARTTLS) or ssl:// (SSL/TLS).
+roundcube_default_imap_host: ''
+# IMAP port number; defaults to 143.
+roundcube_default_imap_port: ''
+
+# Hostname of the SMTP server to send mails. For encypted connections,
+# prefix the host with tls:// (STARTTLS) or ssl:// (SSL/TLS).
+roundcube_smtp_server: ''
+# SMTP port number; defaults to 587.
+roundcube_smtp_port: ''
+
+# Comma-separated list of built-in plugins to activate.
+#
+# If not specified, defaults to archive,zipdownload.
+roundcube_plugins: ''
+
+# File upload size limit.
+#
+# Should be specified with a suffix indicating the unit.
+#
+# If not specified, defaults to 5M.
+roundcube_upload_max_filesize: ''
+
+# Comma-separated list of aspell dictionaries to install for spell
+# checking.
+roundcube_aspell_dicts: ''
+
+roundcube_container_http_port: 80
+# Controls whether the roundcube container exposes its HTTP port (as
+# defined by `roundcube_container_http_port`).
+#
+# Takes an "<ip>:<port>" or "<port>" value (e.g. "127.0.0.1:8731"), or
+# empty string to not expose.
+roundcube_container_http_host_bind_port: ""
+
+# roundcube_container_labels_traefik_enabled controls whether labels to assist a Traefik reverse-proxy will be attached to the container.
+# See `../templates/labels.j2` for details.
+#
+# To inject your own other container labels, see `roundcube_container_labels_additional_labels`.
+roundcube_container_labels_traefik_enabled: true
+roundcube_container_labels_traefik_docker_network: "{{ roundcube_container_network }}"
+roundcube_container_labels_traefik_hostname: "{{ roundcube_hostname }}"
+# The path prefix must either be `/` or not end with a slash (e.g. `/roundcube`).
+roundcube_container_labels_traefik_path_prefix: "{{ roundcube_path_prefix }}"
+roundcube_container_labels_traefik_rule: "Host(`{{ roundcube_container_labels_traefik_hostname }}`){% if roundcube_container_labels_traefik_path_prefix != '/' %} && PathPrefix(`{{ roundcube_container_labels_traefik_path_prefix }}`){% endif %}"
+roundcube_container_labels_traefik_priority: 0
+roundcube_container_labels_traefik_entrypoints: web-secure
+roundcube_container_labels_traefik_tls: "{{ roundcube_container_labels_traefik_entrypoints != 'web' }}"
+roundcube_container_labels_traefik_tls_certResolver: default  # noqa var-naming
+
+# Controls which additional headers to attach to all HTTP requests.
+# To add your own custom request headers, use `roundcube_container_labels_traefik_additional_response_headers_custom`
+roundcube_container_labels_traefik_additional_request_headers: "{{ roundcube_container_labels_traefik_additional_request_headers_auto | combine(roundcube_container_labels_traefik_additional_request_headers_custom) }}"
+roundcube_container_labels_traefik_additional_request_headers_auto: {}
+roundcube_container_labels_traefik_additional_request_headers_custom: {}
+
+# Controls which additional headers to attach to all HTTP responses.
+# To add your own custom response headers, use `roundcube_container_labels_traefik_additional_response_headers_custom`
+roundcube_container_labels_traefik_additional_response_headers: "{{ roundcube_container_labels_traefik_additional_response_headers_auto | combine(roundcube_container_labels_traefik_additional_response_headers_custom) }}"
+roundcube_container_labels_traefik_additional_response_headers_auto: |
+  {{
+    {}
+    | combine ({'X-XSS-Protection': roundcube_http_header_xss_protection} if roundcube_http_header_xss_protection else {})
+    | combine ({'X-Frame-Options': roundcube_http_header_frame_options} if roundcube_http_header_frame_options else {})
+    | combine ({'X-Content-Type-Options': roundcube_http_header_content_type_options} if roundcube_http_header_content_type_options else {})
+    | combine ({'Content-Security-Policy': roundcube_http_header_content_security_policy} if roundcube_http_header_content_security_policy else {})
+    | combine ({'Permission-Policy': roundcube_http_header_content_permission_policy} if roundcube_http_header_content_permission_policy else {})
+    | combine ({'Strict-Transport-Security': roundcube_http_header_strict_transport_security} if roundcube_http_header_strict_transport_security and roundcube_container_labels_traefik_tls else {})
+  }}
+roundcube_container_labels_traefik_additional_response_headers_custom: {}
+
+# roundcube_container_labels_additional_labels contains a multiline string with additional labels to add to the container label file.
+# See `../templates/labels.j2` for details.
+#
+# Example:
+# roundcube_container_labels_additional_labels: |
+#   my.label=1
+#   another.label="here"
+roundcube_container_labels_additional_labels: ''
+
+# Specifies how often the container health-check will run.
+#
+# For Traefik based setups, it's important that the interval is short,
+# because the interval value also specifies the "initial wait time".
+# This is a Docker (moby) bug: https://github.com/moby/moby/issues/33410
+# Without a successful healthcheck, Traefik will not register the service for reverse-proxying.
+# Thus, the health interval determines the initial start-up time -- the smaller, the better.
+#
+# For non-Traefik setups, we use the default healthcheck interval (60s) to decrease overhead.
+roundcube_container_health_interval: "{{ '5s' if roundcube_container_labels_traefik_enabled else '60s' }}"
+
+roundcube_container_hostname: "{{ roundcube_hostname }}"
+
+# A list of additional "volumes" to mount in the container.
+#
+# See the `--mount` documentation for the `docker run` command.
+#
+# Example:
+# roundcube_container_additional_volumes:
+#   - type: bind
+#     src: /path/on/the/host
+#     dst: /data
+#   - type: bind
+#     src: /another-path/on/the/host
+#     dst: /read-only
+#     options: readonly
+roundcube_container_additional_volumes: []
+
+# A list of extra arguments to pass to the container
+roundcube_container_extra_arguments: []
+
+# Additional environment variables.
+roundcube_environment_variables_additional_variables: ''
+
+# Specifies the value of the `X-XSS-Protection` header
+# Stops pages from loading when they detect reflected cross-site scripting (XSS) attacks.
+#
+# Learn more about it is here:
+# - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
+# - https://portswigger.net/web-security/cross-site-scripting/reflected
+roundcube_http_header_xss_protection: "1; mode=block"
+
+# Specifies the value of the `X-Frame-Options` header which controls whether framing can happen.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+roundcube_http_header_frame_options: SAMEORIGIN
+
+# Specifies the value of the `X-Content-Type-Options` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+roundcube_http_header_content_type_options: nosniff
+
+# Specifies the value of the `Content-Security-Policy` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
+roundcube_http_header_content_security_policy: frame-ancestors 'self'
+
+# Specifies the value of the `Permission-Policy` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permission-Policy
+roundcube_http_header_content_permission_policy: "{{ 'interest-cohort=()' if roundcube_floc_optout_enabled else '' }}"
+
+# Specifies the value of the `Strict-Transport-Security` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+roundcube_http_header_strict_transport_security: "max-age=31536000; includeSubDomains{{ '; preload' if roundcube_hsts_preload_enabled else '' }}"
+
+# Controls whether to send a "Permissions-Policy interest-cohort=();" header along with all responses
+#
+# Learn more about what it is here:
+# - https://www.eff.org/deeplinks/2021/03/googles-floc-terrible-idea
+# - https://paramdeo.com/blog/opting-your-website-out-of-googles-floc-network
+# - https://amifloced.org/
+#
+# Of course, a better solution is to just stop using browsers (like Chrome), which participate in such tracking practices.
+# See: `roundcube_content_permission_policy`
+roundcube_floc_optout_enabled: true
+
+# Controls if HSTS preloading is enabled
+#
+# In its strongest and recommended form, the [HSTS policy](https://www.chromium.org/hsts) includes all subdomains, and
+# indicates a willingness to be "preloaded" into browsers:
+# `Strict-Transport-Security: max-age=31536000; includeSubDomains; preload`
+# For more information visit:
+# - https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security
+# - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+# - https://hstspreload.org/#opt-in
+# See: `roundcube_http_header_strict_transport_security`
+roundcube_hsts_preload_enabled: false
+
+# List of systemd services that roundcube.service depends on
+roundcube_systemd_required_services_list: "{{ roundcube_systemd_required_services_list_default + roundcube_systemd_required_services_list_auto + roundcube_systemd_required_services_list_custom }}"
+roundcube_systemd_required_services_list_default: ['docker.service']
+roundcube_systemd_required_services_list_auto: []
+roundcube_systemd_required_services_list_custom: []

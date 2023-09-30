@@ -1,0 +1,65 @@
+---
+
+- name: Ensure Roundcube paths exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0751
+    owner: "{{ roundcube_uid }}"
+    group: "{{ roundcube_gid }}"
+  with_items:
+    - "{{ roundcube_base_path }}"
+    - "{{ roundcube_install_path }}"
+    - "{{ roundcube_config_path }}"
+    - "{{ roundcube_sqlite_db_path }}"
+    - "{{ roundcube_tmp_path }}"
+
+- name: Ensure Roundcube support files installed
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/{{ item }}.j2"
+    dest: "{{ roundcube_base_path }}/{{ item }}"
+    mode: 0640
+    owner: "{{ roundcube_uid }}"
+    group: "{{ roundcube_gid }}"
+  with_items:
+    - env
+    - labels
+
+- name: Ensure Roundcube container image is pulled via community.docker.docker_image
+  when: devture_systemd_docker_base_container_image_pull_method == 'ansible-module'
+  community.docker.docker_image:
+    name: "{{ roundcube_container_image }}"
+    source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
+    force_source: "{{ roundcube_container_image_force_pull if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
+    force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else roundcube_container_image_force_pull }}"
+  register: result
+  retries: "{{ devture_playbook_help_container_retries_count }}"
+  delay: "{{ devture_playbook_help_container_retries_delay }}"
+  until: result is not failed
+
+- name: Ensure Roundcube container image is pulled via command
+  when: devture_systemd_docker_base_container_image_pull_method == 'command'
+  ansible.builtin.command:
+    cmd: "{{ devture_systemd_docker_base_host_command_docker }} pull {{ roundcube_container_image }}"
+  register: result
+  retries: "{{ devture_playbook_help_container_retries_count }}"
+  delay: "{{ devture_playbook_help_container_retries_delay }}"
+  until: result is not failed
+
+- name: Ensure Roundcube container network is created via community.docker.docker_network
+  when: devture_systemd_docker_base_container_network_creation_method == 'ansible-module'
+  community.general.docker_network:
+    name: "{{ roundcube_container_network }}"
+    driver: bridge
+
+- name: Ensure Roundcube container network exists via command
+  when: devture_systemd_docker_base_container_network_creation_method == 'command'
+  ansible.builtin.command:
+    cmd: "{{ devture_systemd_docker_base_host_command_docker }} network create {{ roundcube_container_network }}"
+  register: network_creation_result
+  failed_when: network_creation_result.rc != 0 and 'already exists' not in network_creation_result.stderr
+
+- name: Ensure Roundcube systemd service is present
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/systemd/roundcube.service.j2"
+    dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ roundcube_identifier }}.service"
