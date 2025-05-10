@@ -230,6 +230,6 @@ roundcube_hsts_preload_enabled: false
 
 # List of systemd services that roundcube.service depends on
 roundcube_systemd_required_services_list: "{{ roundcube_systemd_required_services_list_default + roundcube_systemd_required_services_list_auto + roundcube_systemd_required_services_list_custom }}"
-roundcube_systemd_required_services_list_default: ['docker.service']
+roundcube_systemd_required_services_list_default: "{{ [devture_systemd_docker_base_docker_service_name] if devture_systemd_docker_base_docker_service_name else [] }}"
 roundcube_systemd_required_services_list_auto: []
 roundcube_systemd_required_services_list_custom: []
