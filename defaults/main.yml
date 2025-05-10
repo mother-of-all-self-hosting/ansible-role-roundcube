@@ -7,12 +7,16 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-
 # Project source code URL: https://github.com/roundcube/roundcubemail
 
 roundcube_enabled: true
 
 roundcube_identifier: roundcube
+roundcube_base_path: "/{{ roundcube_identifier }}"
+roundcube_install_path: "{{ roundcube_base_path }}/install"
+roundcube_config_path: "{{ roundcube_base_path }}/config"
+roundcube_sqlite_db_path: "{{ roundcube_base_path }}/sqlite"
+roundcube_tmp_path: "{{ roundcube_base_path }}/tmp"
 
 # renovate: datasource=docker depName=roundcube/roundcubemail versioning=semver
 roundcube_version: 1.6.10
@@ -22,22 +26,16 @@ roundcube_version: 1.6.10
 # chooses to publish the container port.
 roundcube_variant: 'apache'
 
+# The roundcube entrypoint script expects to be run as root.
+roundcube_uid: '0'
+roundcube_gid: '0'
+
 # The hostname at which Roundcube is served.
 roundcube_hostname: ''
 
 # The path at which Roundcube is served.
 # This value must either be `/` or not end with a slash (e.g. `/roundcube`).
 roundcube_path_prefix: /
-
-# The roundcube entrypoint script expects to be run as root.
-roundcube_uid: '0'
-roundcube_gid: '0'
-
-roundcube_base_path: "/{{ roundcube_identifier }}"
-roundcube_install_path: "{{ roundcube_base_path }}/install"
-roundcube_config_path: "{{ roundcube_base_path }}/config"
-roundcube_sqlite_db_path: "{{ roundcube_base_path }}/sqlite"
-roundcube_tmp_path: "{{ roundcube_base_path }}/tmp"
 
 roundcube_container_image: "{{ roundcube_container_image_registry_prefix }}roundcube/roundcubemail:{{ roundcube_container_image_tag }}"
 roundcube_container_image_tag: "{{ roundcube_version }}-{{ roundcube_variant }}"
@@ -46,8 +44,17 @@ roundcube_container_image_registry_prefix_upstream: "{{ roundcube_container_imag
 roundcube_container_image_registry_prefix_upstream_default: docker.io/
 roundcube_container_image_force_pull: "{{ roundcube_container_image.endswith(':latest') }}"
 
+# Controls whether the roundcube container exposes its HTTP port (as
+# defined by `roundcube_container_http_port`).
+#
+# Takes an "<ip>:<port>" or "<port>" value (e.g. "127.0.0.1:8731"), or
+# empty string to not expose.
+roundcube_container_http_host_bind_port: ""
+
 # The base container network. It will be auto-created by this role if it doesn't exist already.
 roundcube_container_network: "{{ roundcube_identifier }}"
+
+roundcube_container_http_port: 80
 
 # A list of additional container networks that the container would be connected to.
 # The role does not create these networks, so make sure they already exist.
@@ -56,49 +63,20 @@ roundcube_container_additional_networks: "{{ roundcube_container_additional_netw
 roundcube_container_additional_networks_auto: []
 roundcube_container_additional_networks_custom: []
 
-# Valid database types are postgresql and sqlite.
-roundcube_database_type: postgresql
-roundcube_database_hostname: ''
-roundcube_database_port: 5432
-roundcube_database_name: roundcube
-roundcube_database_username: ''
-roundcube_database_password: ''
-
-# Hostname of the IMAP server to connect to. For encypted connections,
-# prefix the host with tls:// (STARTTLS) or ssl:// (SSL/TLS).
-roundcube_default_imap_host: ''
-# IMAP port number; defaults to 143.
-roundcube_default_imap_port: ''
-
-# Hostname of the SMTP server to send mails. For encypted connections,
-# prefix the host with tls:// (STARTTLS) or ssl:// (SSL/TLS).
-roundcube_smtp_server: ''
-# SMTP port number; defaults to 587.
-roundcube_smtp_port: ''
-
-# Comma-separated list of built-in plugins to activate.
+# A list of additional "volumes" to mount in the container.
 #
-# If not specified, defaults to archive,zipdownload.
-roundcube_plugins: ''
-
-# File upload size limit.
+# See the `--mount` documentation for the `docker run` command.
 #
-# Should be specified with a suffix indicating the unit.
-#
-# If not specified, defaults to 5M.
-roundcube_upload_max_filesize: ''
-
-# Comma-separated list of aspell dictionaries to install for spell
-# checking.
-roundcube_aspell_dicts: ''
-
-roundcube_container_http_port: 80
-# Controls whether the roundcube container exposes its HTTP port (as
-# defined by `roundcube_container_http_port`).
-#
-# Takes an "<ip>:<port>" or "<port>" value (e.g. "127.0.0.1:8731"), or
-# empty string to not expose.
-roundcube_container_http_host_bind_port: ""
+# Example:
+# roundcube_container_additional_volumes:
+#   - type: bind
+#     src: /path/on/the/host
+#     dst: /data
+#   - type: bind
+#     src: /another-path/on/the/host
+#     dst: /read-only
+#     options: readonly
+roundcube_container_additional_volumes: []
 
 # roundcube_container_labels_traefik_enabled controls whether labels to assist a Traefik reverse-proxy will be attached to the container.
 # See `../templates/labels.j2` for details.
@@ -144,6 +122,14 @@ roundcube_container_labels_traefik_additional_response_headers_custom: {}
 #   another.label="here"
 roundcube_container_labels_additional_labels: ''
 
+# Intentionally leaving this blank, instead of defaulting it to `roundcube_hostname`, to avoid specifying a hostname
+# and which could render other services on that hostname potentially unreachable.
+# See: https://github.com/mother-of-all-self-hosting/mash-playbook/issues/391
+roundcube_container_hostname: ""
+
+# A list of extra arguments to pass to the container
+roundcube_container_extra_arguments: []
+
 # Specifies how often the container health-check will run.
 #
 # For Traefik based setups, it's important that the interval is short,
@@ -154,32 +140,6 @@ roundcube_container_labels_additional_labels: ''
 #
 # For non-Traefik setups, we use the default healthcheck interval (60s) to decrease overhead.
 roundcube_container_health_interval: "{{ '5s' if roundcube_container_labels_traefik_enabled else '60s' }}"
-
-# Intentionally leaving this blank, instead of defaulting it to `roundcube_hostname`, to avoid specifying a hostname
-# and which could render other services on that hostname potentially unreachable.
-# See: https://github.com/mother-of-all-self-hosting/mash-playbook/issues/391
-roundcube_container_hostname: ""
-
-# A list of additional "volumes" to mount in the container.
-#
-# See the `--mount` documentation for the `docker run` command.
-#
-# Example:
-# roundcube_container_additional_volumes:
-#   - type: bind
-#     src: /path/on/the/host
-#     dst: /data
-#   - type: bind
-#     src: /another-path/on/the/host
-#     dst: /read-only
-#     options: readonly
-roundcube_container_additional_volumes: []
-
-# A list of extra arguments to pass to the container
-roundcube_container_extra_arguments: []
-
-# Additional environment variables.
-roundcube_environment_variables_additional_variables: ''
 
 # Specifies the value of the `X-XSS-Protection` header
 # Stops pages from loading when they detect reflected cross-site scripting (XSS) attacks.
@@ -233,3 +193,42 @@ roundcube_systemd_required_services_list: "{{ roundcube_systemd_required_service
 roundcube_systemd_required_services_list_default: "{{ [devture_systemd_docker_base_docker_service_name] if devture_systemd_docker_base_docker_service_name else [] }}"
 roundcube_systemd_required_services_list_auto: []
 roundcube_systemd_required_services_list_custom: []
+
+# Additional environment variables.
+roundcube_environment_variables_additional_variables: ''
+
+# Valid database types are postgresql and sqlite.
+roundcube_database_type: postgresql
+roundcube_database_hostname: ''
+roundcube_database_port: 5432
+roundcube_database_name: roundcube
+roundcube_database_username: ''
+roundcube_database_password: ''
+
+# Hostname of the IMAP server to connect to. For encypted connections,
+# prefix the host with tls:// (STARTTLS) or ssl:// (SSL/TLS).
+roundcube_default_imap_host: ''
+# IMAP port number; defaults to 143.
+roundcube_default_imap_port: ''
+
+# Hostname of the SMTP server to send mails. For encypted connections,
+# prefix the host with tls:// (STARTTLS) or ssl:// (SSL/TLS).
+roundcube_smtp_server: ''
+# SMTP port number; defaults to 587.
+roundcube_smtp_port: ''
+
+# Comma-separated list of built-in plugins to activate.
+#
+# If not specified, defaults to archive,zipdownload.
+roundcube_plugins: ''
+
+# File upload size limit.
+#
+# Should be specified with a suffix indicating the unit.
+#
+# If not specified, defaults to 5M.
+roundcube_upload_max_filesize: ''
+
+# Comma-separated list of aspell dictionaries to install for spell
+# checking.
+roundcube_aspell_dicts: ''
