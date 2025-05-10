@@ -11,6 +11,7 @@ roundcube_enabled: true
 
 roundcube_identifier: roundcube
 
+# renovate: datasource=docker depName=roundcube/roundcubemail versioning=semver
 roundcube_version: 1.6.10
 
 # The image variant to use.  We choose the 'apache' variant because
