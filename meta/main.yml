@@ -1,7 +1,3 @@
-# SPDX-FileCopyrightText: 2023 Sergio Durigan Junior
-#
-# SPDX-License-Identifier: AGPL-3.0-or-later
-
 galaxy_info:
   author: Sergio Durigan Junior
   role_name: roundcube
