@@ -211,13 +211,13 @@ roundcube_database_name: roundcube
 roundcube_database_username: ''
 roundcube_database_password: ''
 
-# Hostname of the IMAP server to connect to. For encypted connections,
+# Hostname of the IMAP server to connect to. For encrypted connections,
 # prefix the host with tls:// (STARTTLS) or ssl:// (SSL/TLS).
 roundcube_default_imap_host: ''
 # IMAP port number; defaults to 143.
 roundcube_default_imap_port: ''
 
-# Hostname of the SMTP server to send mails. For encypted connections,
+# Hostname of the SMTP server to send mails. For encrypted connections,
 # prefix the host with tls:// (STARTTLS) or ssl:// (SSL/TLS).
 roundcube_smtp_server: ''
 # SMTP port number; defaults to 587.

@@ -4,27 +4,24 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-
 - name: Perform Roundcube installation tasks
-  block:
-    - name: Validate Roundcube configuration
-      when: roundcube_enabled | bool
-      ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
-
-    - name: Install Roundcube
-      when: roundcube_enabled | bool
-      ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
+  when: roundcube_enabled | bool
   tags:
     - setup-all
     - setup-roundcube
     - install-all
     - install-roundcube
+  block:
+    - name: Validate Roundcube configuration
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
+    - name: Install Roundcube
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
 
 - name: Perform Roundcube uninstallation tasks
-  block:
-    - name: Uninstall Roundcube
-      when: not roundcube_enabled | bool
-      ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"
+  when: not roundcube_enabled | bool
   tags:
     - setup-all
     - setup-roundcube
+  block:
+    - name: Uninstall Roundcube
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"

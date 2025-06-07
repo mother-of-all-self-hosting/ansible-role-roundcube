@@ -3,13 +3,13 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-
 - name: Check existence of Roundcube systemd service
   ansible.builtin.stat:
     path: "{{ devture_systemd_docker_base_systemd_path }}/{{ roundcube_identifier }}.service"
   register: roundcube_service_stat
 
-- when: roundcube_service_stat.stat.exists | bool
+- name: Uninstall Roundcube systemd services and files
+  when: roundcube_service_stat.stat.exists | bool
   block:
     - name: Ensure Roundcube systemd service is stopped
       ansible.builtin.service:

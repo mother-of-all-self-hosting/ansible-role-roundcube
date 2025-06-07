@@ -3,12 +3,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-
 - name: Ensure Roundcube paths exist
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    mode: 0751
+    mode: "0751"
     owner: "{{ roundcube_uid }}"
     group: "{{ roundcube_gid }}"
   with_items:
@@ -22,7 +21,7 @@
   ansible.builtin.template:
     src: "{{ role_path }}/templates/{{ item }}.j2"
     dest: "{{ roundcube_base_path }}/{{ item }}"
-    mode: 0640
+    mode: "0640"
     owner: "{{ roundcube_uid }}"
     group: "{{ roundcube_gid }}"
   with_items:
@@ -75,4 +74,4 @@
   ansible.builtin.template:
     src: "{{ role_path }}/templates/systemd/roundcube.service.j2"
     dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ roundcube_identifier }}.service"
-    mode: 0644
+    mode: "0644"
