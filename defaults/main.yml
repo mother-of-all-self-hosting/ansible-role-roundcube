@@ -97,7 +97,7 @@ roundcube_container_labels_traefik_tls: "{{ roundcube_container_labels_traefik_e
 roundcube_container_labels_traefik_tls_certResolver: default  # noqa var-naming
 
 # Controls which additional headers to attach to all HTTP requests.
-# To add your own custom request headers, use `roundcube_container_labels_traefik_additional_response_headers_custom`
+# To add your own custom request headers, use `roundcube_container_labels_traefik_additional_request_headers_custom`
 roundcube_container_labels_traefik_additional_request_headers: "{{ roundcube_container_labels_traefik_additional_request_headers_auto | combine(roundcube_container_labels_traefik_additional_request_headers_custom) }}"
 roundcube_container_labels_traefik_additional_request_headers_auto: {}
 roundcube_container_labels_traefik_additional_request_headers_custom: {}
