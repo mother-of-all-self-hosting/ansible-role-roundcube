@@ -190,7 +190,10 @@ roundcube_systemd_required_services_list_auto: []
 roundcube_systemd_required_services_list_custom: []
 
 # List of systemd services that the Roundcube systemd service wants
-roundcube_systemd_wanted_services_list: []
+roundcube_systemd_wanted_services_list: "{{ roundcube_systemd_wanted_services_list_default + roundcube_systemd_wanted_services_list_auto + roundcube_systemd_wanted_services_list_custom }}"
+roundcube_systemd_wanted_services_list_default: []
+roundcube_systemd_wanted_services_list_auto: []
+roundcube_systemd_wanted_services_list_custom: []
 
 # Additional environment variables.
 roundcube_environment_variables_additional_variables: ''
