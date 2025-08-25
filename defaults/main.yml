@@ -203,7 +203,7 @@ roundcube_database_type: postgresql
 roundcube_database_hostname: ''
 roundcube_database_port: 5432
 roundcube_database_name: roundcube
-roundcube_database_username: ''
+roundcube_database_username: roundcube
 roundcube_database_password: ''
 
 # Hostname of the IMAP server to connect to. For encrypted connections,

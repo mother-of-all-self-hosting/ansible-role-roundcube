@@ -30,7 +30,6 @@
       You need to define a required configuration setting (`{{ item }}`) when `roundcube_database_type` is `postgresql`
   when: "roundcube_database_type == 'postgresql' and lookup('vars', item, default='') | string | length == 0"
   with_items:
-    - roundcube_database_username
     - roundcube_database_password
 
 - name: Run if Traefik is enabled
