@@ -27,8 +27,8 @@ ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_s
 ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       --rm \
       --name={{ roundcube_identifier }} \
-      --user={{ roundcube_uid }}:{{ roundcube_gid }} \
       --log-driver=none \
+      --user={{ roundcube_uid }}:{{ roundcube_gid }} \
       --cap-drop=ALL \
       --cap-add=CHOWN \
       --cap-add=FOWNER \
