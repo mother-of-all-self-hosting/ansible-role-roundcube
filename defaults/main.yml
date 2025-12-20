@@ -195,9 +195,6 @@ roundcube_systemd_wanted_services_list_default: []
 roundcube_systemd_wanted_services_list_auto: []
 roundcube_systemd_wanted_services_list_custom: []
 
-# Additional environment variables.
-roundcube_environment_variables_additional_variables: ''
-
 # Valid database types are postgresql and sqlite.
 roundcube_database_type: postgresql
 roundcube_database_hostname: ''
@@ -233,3 +230,9 @@ roundcube_upload_max_filesize: ''
 # Comma-separated list of aspell dictionaries to install for spell
 # checking.
 roundcube_aspell_dicts: ''
+
+# Specify the timezone
+roundcube_environment_variables_tz: UTC
+
+# Additional environment variables.
+roundcube_environment_variables_additional_variables: ''
