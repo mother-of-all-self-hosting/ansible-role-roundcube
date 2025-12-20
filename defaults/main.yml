@@ -123,7 +123,9 @@ roundcube_container_labels_additional_labels: ''
 roundcube_container_hostname: ""
 
 # A list of extra arguments to pass to the container
-roundcube_container_extra_arguments: []
+roundcube_container_extra_arguments: "{{ roundcube_container_extra_arguments_auto + roundcube_container_extra_arguments_custom }}"
+roundcube_container_extra_arguments_auto: []
+roundcube_container_extra_arguments_custom: []
 
 # Specifies how often the container health-check will run.
 #
