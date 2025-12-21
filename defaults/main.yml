@@ -125,7 +125,7 @@ roundcube_container_labels_additional_labels_custom: {}
 # See: https://github.com/mother-of-all-self-hosting/mash-playbook/issues/391
 roundcube_container_hostname: ""
 
-# A list of extra arguments to pass to the container
+# A list of extra arguments to pass to the container (`docker create` command)
 roundcube_container_extra_arguments: "{{ roundcube_container_extra_arguments_auto + roundcube_container_extra_arguments_custom }}"
 roundcube_container_extra_arguments_auto: []
 roundcube_container_extra_arguments_custom: []
