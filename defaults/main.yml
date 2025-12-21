@@ -31,7 +31,7 @@ roundcube_uid: '0'
 roundcube_gid: '0'
 
 # The hostname at which Roundcube is served.
-roundcube_hostname: ''
+roundcube_hostname: ""
 
 # The path at which Roundcube is served.
 # This value must either be `/` or not end with a slash (e.g. `/roundcube`).
@@ -202,42 +202,42 @@ roundcube_systemd_wanted_services_list_custom: []
 
 # Valid database types are postgresql and sqlite.
 roundcube_database_type: postgresql
-roundcube_database_hostname: ''
+roundcube_database_hostname: ""
 roundcube_database_port: 5432
 roundcube_database_name: roundcube
 roundcube_database_username: roundcube
-roundcube_database_password: ''
+roundcube_database_password: ""
 
 # Hostname of the IMAP server to connect to. For encrypted connections,
 # prefix the host with tls:// (STARTTLS) or ssl:// (SSL/TLS).
-roundcube_default_imap_host: ''
+roundcube_default_imap_host: ""
 # IMAP port number; defaults to 143.
-roundcube_default_imap_port: ''
+roundcube_default_imap_port: ""
 
 # Hostname of the SMTP server to send mails. For encrypted connections,
 # prefix the host with tls:// (STARTTLS) or ssl:// (SSL/TLS).
-roundcube_smtp_server: ''
+roundcube_smtp_server: ""
 # SMTP port number; defaults to 587.
-roundcube_smtp_port: ''
+roundcube_smtp_port: ""
 
 # Comma-separated list of built-in plugins to activate.
 #
 # If not specified, defaults to archive,zipdownload.
-roundcube_plugins: ''
+roundcube_plugins: ""
 
 # File upload size limit.
 #
 # Should be specified with a suffix indicating the unit.
 #
 # If not specified, defaults to 5M.
-roundcube_upload_max_filesize: ''
+roundcube_upload_max_filesize: ""
 
 # Comma-separated list of aspell dictionaries to install for spell
 # checking.
-roundcube_aspell_dicts: ''
+roundcube_aspell_dicts: ""
 
 # Specify the timezone
 roundcube_environment_variables_tz: UTC
 
 # Additional environment variables.
-roundcube_environment_variables_additional_variables: ''
+roundcube_environment_variables_additional_variables: ""
