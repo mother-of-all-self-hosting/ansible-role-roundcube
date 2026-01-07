@@ -55,4 +55,6 @@ traefik.http.routers.{{ roundcube_identifier }}.tls.certResolver={{ roundcube_co
 traefik.http.services.{{ roundcube_identifier }}.loadbalancer.server.port={{ roundcube_container_http_port }}
 {% endif %}
 
-{{ roundcube_container_labels_additional_labels }}
+{% for arg in roundcube_container_labels_additional_labels %}
+{{ arg }}
+{% endfor %}
