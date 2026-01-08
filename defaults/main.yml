@@ -113,7 +113,7 @@ roundcube_container_labels_traefik_additional_response_headers_custom: {}
 # To add your own custom labels, use `roundcube_container_labels_additional_labels_custom`
 #
 # Example:
-# roundcube_container_labels_additional_labels_custom: |
+# roundcube_container_labels_additional_labels_custom:
 #   - my.label=1
 #   - another.label="here"
 roundcube_container_labels_additional_labels: "{{ roundcube_container_labels_additional_labels_auto + roundcube_container_labels_additional_labels_custom }}"
