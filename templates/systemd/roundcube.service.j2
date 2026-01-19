@@ -32,8 +32,8 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       --cap-drop=ALL \
       --cap-add=CHOWN \
       --cap-add=FOWNER \
-      --cap-add=setgid \
-      --cap-add=setuid \
+      --cap-add=SETGID \
+      --cap-add=SETUID \
       --network={{ roundcube_container_network }} \
       --hostname={{ roundcube_container_hostname }} \
       {% if roundcube_container_http_host_bind_port %}
