@@ -24,21 +24,24 @@
         path: "{{ devture_systemd_docker_base_systemd_path }}/{{ roundcube_identifier }}.service"
         state: absent
 
-    - name: Ensure Roundcube container network does not exist via community.docker.docker_network
-      when: devture_systemd_docker_base_container_network_creation_method == 'ansible-module'
-      community.docker.docker_network:
-        name: "{{ roundcube_container_network }}"
-        state: absent
-      register: roundcube_network_deletion_result
+    - name: Ensure Roundcube container network does not exist
+      when: roundcube_container_network_deletion_enabled
+      block:
+        - name: Ensure Roundcube container network does not exist via community.docker.docker_network
+          when: devture_systemd_docker_base_container_network_creation_method == 'ansible-module'
+          community.docker.docker_network:
+            name: "{{ roundcube_container_network }}"
+            state: absent
+          register: roundcube_network_deletion_result
 
-    - name: Ensure Roundcube container network does not exist via ansible.builtin.command
-      when: devture_systemd_docker_base_container_network_creation_method == 'command'
-      ansible.builtin.command:
-        cmd: >-
-          {{ devture_systemd_docker_base_host_command_docker }} network rm
-          {{ roundcube_container_network }}
-      register: roundcube_network_deletion_result
-      changed_when: roundcube_container_network in roundcube_network_deletion_result.stdout
+        - name: Ensure Roundcube container network does not exist via ansible.builtin.command
+          when: devture_systemd_docker_base_container_network_creation_method == 'command'
+          ansible.builtin.command:
+            cmd: >-
+              {{ devture_systemd_docker_base_host_command_docker }} network rm
+              {{ roundcube_container_network }}
+          register: roundcube_network_deletion_result
+          changed_when: roundcube_container_network in roundcube_network_deletion_result.stdout
 
     - name: Ensure Roundcube path does not exist
       ansible.builtin.file:
