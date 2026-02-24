@@ -19,7 +19,7 @@ roundcube_sqlite_db_path: "{{ roundcube_base_path }}/sqlite"
 roundcube_tmp_path: "{{ roundcube_base_path }}/tmp"
 
 # renovate: datasource=docker depName=roundcube/roundcubemail versioning=semver
-roundcube_version: 1.6.11
+roundcube_version: 1.6.13
 
 # The image variant to use.  We choose the 'apache' variant because
 # 'fpm' and 'fpm-alpine' can introduce security concerns if the user
