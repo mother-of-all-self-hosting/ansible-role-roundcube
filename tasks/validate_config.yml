@@ -36,8 +36,8 @@
 - name: Fail if Roundcube database type invalid
   ansible.builtin.fail:
     msg: >-
-      roundcube_database_type must be 'mysql', 'postgresql', or 'sqlite'
-  when: "roundcube_database_type not in ['mysql', 'postgresql', 'sqlite']"
+      roundcube_database_type must be 'mysql', 'postgres', or 'sqlite'
+  when: "roundcube_database_type not in ['mysql', 'postgres', 'sqlite']"
 
 - name: Fail if required Roundcube + MySQL integration settings not defined
   ansible.builtin.fail:
@@ -51,8 +51,8 @@
 - name: Fail if required Roundcube + Postgres integration settings not defined
   ansible.builtin.fail:
     msg: >-
-      You need to define a required configuration setting (`{{ item }}`) when `roundcube_database_type` is `postgresql`
-  when: "roundcube_database_type == 'postgresql' and lookup('vars', item, default='') | string | length == 0"
+      You need to define a required configuration setting (`{{ item }}`) when `roundcube_database_type` is `postgres`
+  when: "roundcube_database_type == 'postgres' and lookup('vars', item, default='') | string | length == 0"
   with_items:
     - roundcube_database_postgres_hostname
     - roundcube_database_postgres_password

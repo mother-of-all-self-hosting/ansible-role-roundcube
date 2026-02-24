@@ -205,7 +205,7 @@ roundcube_systemd_wanted_services_list_auto: []
 roundcube_systemd_wanted_services_list_custom: []
 
 # Specify a database driver to use
-# Valid values: mysql, postgresql, sqlite
+# Valid values: mysql, postgres, sqlite
 roundcube_database_type: ""
 
 # Specify database configuration
