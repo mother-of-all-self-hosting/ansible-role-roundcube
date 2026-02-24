@@ -7,15 +7,24 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    mode: "0751"
+    mode: "0750"
     owner: "{{ roundcube_uid }}"
     group: "{{ roundcube_gid }}"
   with_items:
     - "{{ roundcube_base_path }}"
-    - "{{ roundcube_install_path }}"
     - "{{ roundcube_config_path }}"
     - "{{ roundcube_sqlite_db_path }}"
     - "{{ roundcube_tmp_path }}"
+
+- name: Ensure Roundcube path for HTML assets exists
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0751" # This ensures to avoid "unable to check htaccess file, ensure it is readable and that '/var/www/html/' is executable" error
+    owner: "{{ roundcube_uid }}"
+    group: "{{ roundcube_gid }}"
+  with_items:
+    - "{{ roundcube_html_path }}"
 
 - name: Ensure Roundcube support files installed
   ansible.builtin.template:

@@ -13,7 +13,7 @@ roundcube_enabled: true
 
 roundcube_identifier: roundcube
 roundcube_base_path: "/{{ roundcube_identifier }}"
-roundcube_install_path: "{{ roundcube_base_path }}/install"
+roundcube_html_path: "{{ roundcube_base_path }}/install"
 roundcube_config_path: "{{ roundcube_base_path }}/config"
 roundcube_sqlite_db_path: "{{ roundcube_base_path }}/sqlite"
 roundcube_tmp_path: "{{ roundcube_base_path }}/tmp"

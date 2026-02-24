@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2023 Sergio Durigan Junior
 SPDX-FileCopyrightText: 2023 Slavi Pantaleev
 SPDX-FileCopyrightText: 2024 Nikita Chernyi
-SPDX-FileCopyrightText: 2025 Suguru Hirahara
+SPDX-FileCopyrightText: 2025, 2026 Suguru Hirahara
 
 SPDX-License-Identifier: AGPL-3.0-or-later
 #}
@@ -43,7 +43,7 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       --label-file={{ roundcube_base_path }}/labels \
       --health-interval={{ roundcube_container_health_interval }} \
       --mount type=bind,src={{ roundcube_config_path }},dst=/var/roundcube/config \
-      --mount type=bind,src={{ roundcube_install_path }},dst=/var/www/html \
+      --mount type=bind,src={{ roundcube_html_path }},dst=/var/www/html \
       --mount type=bind,src={{ roundcube_tmp_path }},dst=/tmp/roundcube-temp \
       {% if roundcube_database_type == 'sqlite' %}
       --mount type=bind,src={{ roundcube_sqlite_db_path }},dst=/var/roundcube/db \
