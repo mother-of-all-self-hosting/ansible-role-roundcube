@@ -1,8 +1,8 @@
-# SPDX-FileCopyrightText: 2023 - 2024 Nikita Chernyi
-# SPDX-FileCopyrightText: 2023 - 2024 Sergio Durigan Junior
-# SPDX-FileCopyrightText: 2023 - 2025 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2023, 2024 Nikita Chernyi
+# SPDX-FileCopyrightText: 2023, 2024 Sergio Durigan Junior
+# SPDX-FileCopyrightText: 2023-2025 Slavi Pantaleev
 # SPDX-FileCopyrightText: 2025 MASH project contributors
-# SPDX-FileCopyrightText: 2025 Suguru Hirahara
+# SPDX-FileCopyrightText: 2025, 2026 Suguru Hirahara
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -204,13 +204,20 @@ roundcube_systemd_wanted_services_list_default: []
 roundcube_systemd_wanted_services_list_auto: []
 roundcube_systemd_wanted_services_list_custom: []
 
-# Valid database types are postgresql and sqlite.
-roundcube_database_type: postgresql
-roundcube_database_hostname: ""
-roundcube_database_port: 5432
+# Specify a database driver to use
+# Valid values: mysql, postgresql, sqlite
+roundcube_database_type: ""
+
+# Specify database configuration
+roundcube_database_mysql_hostname: ""
+roundcube_database_mysql_port: 3306
+roundcube_database_mysql_username: roundcube
+roundcube_database_mysql_password: ""
+roundcube_database_postgres_hostname: ""
+roundcube_database_postgres_port: 5432
+roundcube_database_postgres_username: roundcube
+roundcube_database_postgres_password: ""
 roundcube_database_name: roundcube
-roundcube_database_username: roundcube
-roundcube_database_password: ""
 
 # Hostname of the IMAP server to connect to. For encrypted connections,
 # prefix the host with tls:// (STARTTLS) or ssl:// (SSL/TLS).

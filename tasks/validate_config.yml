@@ -1,4 +1,5 @@
 # SPDX-FileCopyrightText: 2023 Sergio Durigan Junior
+# SPDX-FileCopyrightText: 2026 Suguru Hirahara
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -11,6 +12,10 @@
   when: "lookup('ansible.builtin.varnames', ('^' + item.old + '$'), wantlist=True) | length > 0"
   with_items:
     - { "old": "roundcube_http_header_content_permission_policy", "new": "roundcube_http_header_permissions_policy" }
+    - { "old": "roundcube_database_hostname", "new": "<Replace with roundcube_database_postgres_hostname or roundcube_database_mysql_hostname>" }
+    - { "old": "roundcube_database_port", "new": "<Replace with roundcube_database_postgres_port or roundcube_database_mysql_port>" }
+    - { "old": "roundcube_database_username", "new": "<Replace with roundcube_database_postgres_username or roundcube_database_mysql_username>" }
+    - { "old": "roundcube_database_password", "new": "<Replace with roundcube_database_postgres_password or roundcube_database_mysql_password>" }
 
 - name: Fail if required Roundcube settings not defined
   ansible.builtin.fail:
@@ -24,14 +29,24 @@
     - roundcube_hostname
     - roundcube_path_prefix
     - roundcube_container_network
+    - roundcube_database_type
     - roundcube_default_imap_host
     - roundcube_smtp_server
 
 - name: Fail if Roundcube database type invalid
   ansible.builtin.fail:
     msg: >-
-      roundcube_database_type must be 'postgresql' or 'sqlite'
-  when: "roundcube_database_type not in ['postgresql', 'sqlite']"
+      roundcube_database_type must be 'mysql', 'postgresql', or 'sqlite'
+  when: "roundcube_database_type not in ['mysql', 'postgresql', 'sqlite']"
+
+- name: Fail if required Roundcube + MySQL integration settings not defined
+  ansible.builtin.fail:
+    msg: >-
+      You need to define a required configuration setting (`{{ item }}`) when `roundcube_database_type` is `mysql`
+  when: "roundcube_database_type == 'mysql' and lookup('vars', item, default='') | string | length == 0"
+  with_items:
+    - roundcube_database_mysql_hostname
+    - roundcube_database_mysql_password
 
 - name: Fail if required Roundcube + Postgres integration settings not defined
   ansible.builtin.fail:
@@ -39,7 +54,8 @@
       You need to define a required configuration setting (`{{ item }}`) when `roundcube_database_type` is `postgresql`
   when: "roundcube_database_type == 'postgresql' and lookup('vars', item, default='') | string | length == 0"
   with_items:
-    - roundcube_database_password
+    - roundcube_database_postgres_hostname
+    - roundcube_database_postgres_password
 
 - name: Run if Traefik is enabled
   when: roundcube_container_labels_traefik_enabled | bool
