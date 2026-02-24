@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2023 Sergio Durigan Junior
-# SPDX-FileCopyrightText: 2025 Suguru Hirahara
+# SPDX-FileCopyrightText: 2025, 2026 Suguru Hirahara
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -24,6 +24,43 @@
         path: "{{ devture_systemd_docker_base_systemd_path }}/{{ roundcube_identifier }}.service"
         state: absent
 
+    - name: Ensure Roundcube support files do not exist
+      ansible.builtin.file:
+        path: "{{ roundcube_base_path }}/{{ item }}"
+        state: absent
+      with_items:
+        - env
+        - labels
+
+    - name: Ensure Roundcube local config path does not exist
+      ansible.builtin.file:
+        path: "{{ roundcube_config_path }}"
+        state: absent
+
+    - name: Ensure Roundcube local HTML assets path does not exist
+      ansible.builtin.file:
+        path: "{{ roundcube_html_path }}"
+        state: absent
+
+    - name: Ensure Roundcube local tmp path does not exist
+      ansible.builtin.file:
+        path: "{{ roundcube_tmp_path }}"
+        state: absent
+
+    - name: Ensure Roundcube local SQLite database path does not exist if empty
+      ansible.builtin.command:
+        cmd: "rmdir {{ roundcube_sqlite_db_path }}"
+      register: roundcube_sqlite_db_path_deletion_result
+      changed_when: roundcube_sqlite_db_path_deletion_result.rc == 0
+      failed_when: false
+
+    - name: Ensure Roundcube base path does not exist if empty
+      ansible.builtin.command:
+        cmd: "rmdir {{ roundcube_base_path }}"
+      register: roundcube_base_path_deletion_result
+      changed_when: roundcube_base_path_deletion_result.rc == 0
+      failed_when: false
+
     - name: Ensure Roundcube container network does not exist
       when: roundcube_container_network_deletion_enabled
       block:
@@ -43,7 +80,20 @@
           register: roundcube_network_deletion_result
           changed_when: roundcube_container_network in roundcube_network_deletion_result.stdout
 
-    - name: Ensure Roundcube path does not exist
-      ansible.builtin.file:
-        path: "{{ roundcube_base_path }}"
-        state: absent
+- name: Check existence of Roundcube local SQLite database path
+  ansible.builtin.stat:
+    path: "{{ roundcube_sqlite_db_path }}"
+  register: roundcube_sqlite_db_path_stat
+
+# We just want to notify the user. Deleting data is too destructive.
+- name: Notify if Roundcube SQLite database remains
+  when: roundcube_sqlite_db_path_stat.stat.exists | bool
+  ansible.builtin.set_fact:
+    devture_playbook_runtime_messages_list: |
+      {{
+        devture_playbook_runtime_messages_list | default([])
+        +
+        [
+          "Note: As the local Roundcube instance has been removed, some old SQLite database remains in `" + roundcube_sqlite_db_path + "`. Feel free to delete it."
+        ]
+      }}
