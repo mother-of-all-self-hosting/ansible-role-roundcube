@@ -1,4 +1,6 @@
 # SPDX-FileCopyrightText: 2023 Sergio Durigan Junior
+# SPDX-FileCopyrightText: 2023-2025 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2025, 2026 Suguru Hirahara
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -38,27 +40,52 @@
     - labels
   register: roundcube_support_files_result
 
-- name: Ensure Roundcube container image is pulled via community.docker.docker_image
-  when: devture_systemd_docker_base_container_image_pull_method == 'ansible-module'
-  community.docker.docker_image:
-    name: "{{ roundcube_container_image }}"
-    source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
-    force_source: "{{ roundcube_container_image_force_pull if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
-    force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else roundcube_container_image_force_pull }}"
-  register: roundcube_container_image_pull_result
-  retries: "{{ devture_playbook_help_container_retries_count }}"
-  delay: "{{ devture_playbook_help_container_retries_delay }}"
-  until: roundcube_container_image_pull_result is not failed
+- name: Run if self-building of Roundcube container image is not enabled
+  when: "not roundcube_container_image_self_build | bool"
+  block:
+    - name: Ensure Roundcube container image is pulled via community.docker.docker_image
+      when: devture_systemd_docker_base_container_image_pull_method == 'ansible-module'
+      community.docker.docker_image:
+        name: "{{ roundcube_container_image }}"
+        source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
+        force_source: "{{ roundcube_container_image_force_pull if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
+        force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else roundcube_container_image_force_pull }}"
+      register: roundcube_container_image_pull_result
+      retries: "{{ devture_playbook_help_container_retries_count }}"
+      delay: "{{ devture_playbook_help_container_retries_delay }}"
+      until: roundcube_container_image_pull_result is not failed
 
-- name: Ensure Roundcube container image is pulled via ansible.builtin.command
-  when: devture_systemd_docker_base_container_image_pull_method == 'command'
-  ansible.builtin.command:
-    cmd: "{{ devture_systemd_docker_base_host_command_docker }} pull {{ roundcube_container_image }}"
-  register: roundcube_container_image_pull_result
-  retries: "{{ devture_playbook_help_container_retries_count }}"
-  delay: "{{ devture_playbook_help_container_retries_delay }}"
-  until: roundcube_container_image_pull_result is not failed
-  changed_when: "'Downloaded newer image' in roundcube_container_image_pull_result.stdout"
+    - name: Ensure Roundcube container image is pulled via ansible.builtin.command
+      when: devture_systemd_docker_base_container_image_pull_method == 'command'
+      ansible.builtin.command:
+        cmd: "{{ devture_systemd_docker_base_host_command_docker }} pull {{ roundcube_container_image }}"
+      register: roundcube_container_image_pull_result
+      retries: "{{ devture_playbook_help_container_retries_count }}"
+      delay: "{{ devture_playbook_help_container_retries_delay }}"
+      until: roundcube_container_image_pull_result is not failed
+      changed_when: "'Downloaded newer image' in roundcube_container_image_pull_result.stdout"
+
+- name: Run if self-building of Roundcube container image is enabled
+  when: "roundcube_container_image_self_build | bool"
+  block:
+    - name: Ensure Roundcube repository is present on self-build
+      ansible.builtin.git:
+        repo: "{{ roundcube_container_image_self_build_repo }}"
+        version: "{{ roundcube_container_image_self_build_repo_version }}"
+        dest: "{{ roundcube_container_image_self_build_src_files_path }}"
+        force: "yes"
+      register: roundcube_git_pull_results
+
+    - name: Ensure Roundcube container image is built
+      ansible.builtin.shell:
+        chdir: "{{ roundcube_container_image_self_build_src_files_path }}/apache"
+        cmd: |
+          {{ devture_systemd_docker_base_host_command_docker }} build \
+          -t "{{ roundcube_container_image_self_build_name }}" \
+          -f Dockerfile \
+          .
+      register: roundcube_container_image_build_result
+      changed_when: "'Successfully built' in roundcube_container_image_build_result.stdout or ('writing image' in roundcube_container_image_build_result.stderr and 'CACHED' not in roundcube_container_image_build_result.stderr)"
 
 - name: Ensure Roundcube container network is created via community.docker.docker_network
   when: devture_systemd_docker_base_container_network_creation_method == 'ansible-module'
