@@ -1,10 +1,10 @@
 <!--
-SPDX-FileCopyrightText: 2020 - 2024 MDAD project contributors
-SPDX-FileCopyrightText: 2020 - 2024 Slavi Pantaleev
 SPDX-FileCopyrightText: 2020 Aaron Raimist
 SPDX-FileCopyrightText: 2020 Chris van Dijk
 SPDX-FileCopyrightText: 2020 Dominik Zajac
 SPDX-FileCopyrightText: 2020 Mickaël Cornière
+SPDX-FileCopyrightText: 2020-2024 MDAD project contributors
+SPDX-FileCopyrightText: 2020-2024 Slavi Pantaleev
 SPDX-FileCopyrightText: 2022 François Darveau
 SPDX-FileCopyrightText: 2022 Julian Foad
 SPDX-FileCopyrightText: 2022 Warren Bailey
@@ -13,18 +13,21 @@ SPDX-FileCopyrightText: 2023 Felix Stupp
 SPDX-FileCopyrightText: 2023 Julian-Samuel Gebühr
 SPDX-FileCopyrightText: 2023 Pierre 'McFly' Marty
 SPDX-FileCopyrightText: 2024 Thomas Miceli
-SPDX-FileCopyrightText: 2024 - 2025 Suguru Hirahara
+SPDX-FileCopyrightText: 2024-2026 Suguru Hirahara
 
 SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 
 # Setting up Roundcube
 
-This is an [Ansible](https://www.ansible.com/) role which installs [Roundcube](https://roundcube.org/) to run as a [Docker](https://www.docker.com/) container wrapped in a systemd service.
+This is an [Ansible](https://www.ansible.com/) role which installs [Roundcube](https://roundcube.net/) to run as a [Docker](https://www.docker.com/) container wrapped in a systemd service.
 
-Roundcube is a web-based free software for farm management, planning, and record keeping. It is developed by a community of farmers, developers, researchers, and organizations.
+Roundcube is a browser-based multilingual IMAP client with an application-like user interface. It provides full functionality you expect from an email client, including MIME support, address book, folder manipulation, message searching and spell checking.
 
-See the project's [documentation](https://roundcube.org/guide/) to learn what Roundcube does and why it might be useful to you.
+See the project's [documentation](https://docs.roundcube.net/) to learn what Roundcube does and why it might be useful to you.
+
+>[!NOTE]
+> The role is configured to install nonroot container image, and therefore a couple of functions are not available without adding adjustments. See [this section]](https://github.com/roundcube/roundcubemail-docker/blob/master/README.md#nonroot-image) on the official documentation for details.
 
 ## Prerequisites
 
@@ -64,11 +67,6 @@ roundcube_hostname: "example.com"
 
 After adjusting the hostname, make sure to adjust your DNS records to point the domain to your server.
 
-**Note**: hosting Roundcube under a subpath (by configuring the `roundcube_path_prefix` variable) does not seem to be possible due to Roundcube's technical limitations.
-
->[!WARNING]
-> Once the hostname is set, it cannot be changed easily as it involves adjusting configuration files.
-
 ### Specify database
 
 It is necessary to select database used by Roundcube from a MySQL compatible database, Postgres, and SQLite.
@@ -79,9 +77,31 @@ To use Postgres, add the following configuration to your `vars.yml` file:
 roundcube_database_type: postgres
 ```
 
-Set `mysql` to use a MySQL compatible database, and `sqlite` to use SQLite. The SQLite database is stored in the directory specified with `roundcube_data_path`.
+Set `mysql` to use a MySQL compatible database, and `sqlite` to use SQLite. The SQLite database is stored in the directory specified with `roundcube_database_path`.
 
 For other settings, check variables such as `roundcube_database_*` on [`defaults/main.yml`](../defaults/main.yml).
+
+### Specify IMAP and SMTP servers
+
+It is also necessary to specify the hostname of IMAP and SMTP servers for the Roundcube instance to connect by adding the following configuration to your `vars.yml` file:
+
+```yaml
+roundcube_environment_variables_default_imap_host: YOUR_IMAP_SERVER_HOSTNAME_HERE
+
+roundcube_environment_variables_smtp_server: YOUR_SMTP_SERVER_HOSTNAME_HERE
+```
+
+If the connections to them are encrypted, make sure to add `tls://` (STARTTLS) or `ssl://` (SSL/TLS) as prefix to those hostnames.
+
+The port number of them can be specified with variables as below:
+
+```yaml
+# Specify IMAP port number
+roundcube_environment_variables_default_imap_port: 143
+
+# Specify SMTP port number
+roundcube_environment_variables_smtp_port: 587
+```
 
 ### Extending the configuration
 
@@ -105,25 +125,7 @@ If you use the MASH playbook, the shortcut commands with the [`just` program](ht
 
 After running the command for installation, Roundcube becomes available at the specified hostname like `https://example.com`.
 
-To get started, open the URL with a web browser, and follow the set up wizard.
-
-### Outputting database credentials
-
-On the set up wizard, it is required to input database credentials to use a MySQL compatible database or Postgres. You can output its credentials by running the playbook as below:
-
-```sh
-ansible-playbook -i inventory/hosts setup.yml --tags=print-db-credentials-roundcube
-```
-
-### Configuring `trusted_host_patterns` setting (recommended)
-
-After installation, you will find the error reported on the dashboard at `https://example.com/admin/reports/status` that the `trusted_host_patterns` setting is not configured in settings.php. You can fix the error by adding the configuration to the file at `/mash/roundcube/data/sites/default/settings.php` manually.
-
-Alternatively, you can automatically add the configuration to the file by running the command below:
-
-```sh
-ansible-playbook -i inventory/hosts setup.yml --tags=trusted-host-roundcube
-```
+To get started, open the URL with a web browser, and log in to the instance with the username and password, which are the same ones for your IMAP server.
 
 ## Troubleshooting
 
