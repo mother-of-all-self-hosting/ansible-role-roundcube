@@ -11,6 +11,7 @@
       Please change your configuration to rename the variable (`{{ item.old }}` -> `{{ item.new }}`).
   when: "lookup('ansible.builtin.varnames', ('^' + item.old + '$'), wantlist=True) | length > 0"
   with_items:
+    - { "old": "roundcube_sqlite_db_path", "new": "roundcube_database_path" }
     - { "old": "roundcube_http_header_content_permission_policy", "new": "roundcube_http_header_permissions_policy" }
     - { "old": "roundcube_database_hostname", "new": "<Replace with roundcube_database_postgres_hostname or roundcube_database_mysql_hostname>" }
     - { "old": "roundcube_database_port", "new": "<Replace with roundcube_database_postgres_port or roundcube_database_mysql_port>" }

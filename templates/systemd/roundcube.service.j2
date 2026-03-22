@@ -45,7 +45,7 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       --mount type=bind,src={{ roundcube_html_path }},dst=/var/www/html \
       --mount type=bind,src={{ roundcube_tmp_path }},dst=/tmp/roundcube-temp \
       {% if roundcube_database_type == 'sqlite' %}
-      --mount type=bind,src={{ roundcube_sqlite_db_path }},dst=/var/roundcube/db \
+      --mount type=bind,src={{ roundcube_database_path }},dst=/var/roundcube/db \
       {% endif %}
       {% for volume in roundcube_container_additional_volumes %}
       --mount type={{ volume.type | default('bind' if '/' in volume.src else 'volume') }},src={{ volume.src }},dst={{ volume.dst }}{{ (',' + volume.options) if volume.options | default('') else '' }} \

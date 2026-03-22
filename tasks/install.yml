@@ -13,7 +13,7 @@
   with_items:
     - "{{ roundcube_base_path }}"
     - "{{ roundcube_config_path }}"
-    - "{{ roundcube_sqlite_db_path }}"
+    - "{{ roundcube_database_path }}"
     - "{{ roundcube_tmp_path }}"
 
 - name: Ensure Roundcube path for HTML assets exists
