@@ -27,7 +27,7 @@ Roundcube is a browser-based multilingual IMAP client with an application-like u
 See the project's [documentation](https://docs.roundcube.net/) to learn what Roundcube does and why it might be useful to you.
 
 >[!NOTE]
-> The role is configured to install nonroot container image, and therefore a couple of functions are not available without adding adjustments. See [this section]](https://github.com/roundcube/roundcubemail-docker/blob/master/README.md#nonroot-image) on the official documentation for details.
+> The role is configured to install nonroot container image, and therefore a couple of functions are not available without adding adjustments. See [this section](https://github.com/roundcube/roundcubemail-docker/blob/master/README.md#nonroot-image) on the official documentation for details.
 
 ## Prerequisites
 
