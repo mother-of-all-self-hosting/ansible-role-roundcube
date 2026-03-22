@@ -17,6 +17,13 @@
     - { "old": "roundcube_database_port", "new": "<Replace with roundcube_database_postgres_port or roundcube_database_mysql_port>" }
     - { "old": "roundcube_database_username", "new": "<Replace with roundcube_database_postgres_username or roundcube_database_mysql_username>" }
     - { "old": "roundcube_database_password", "new": "<Replace with roundcube_database_postgres_password or roundcube_database_mysql_password>" }
+    - { "old": "roundcube_default_imap_host", "new": "roundcube_environment_variables_default_imap_host" }
+    - { "old": "roundcube_default_imap_port", "new": "roundcube_environment_variables_default_imap_port" }
+    - { "old": "roundcube_smtp_server", "new": "roundcube_environment_variables_smtp_server" }
+    - { "old": "roundcube_smtp_port", "new": "roundcube_environment_variables_smtp_port" }
+    - { "old": "roundcube_plugins", "new": "roundcube_environment_variables_plugins" }
+    - { "old": "roundcube_upload_max_filesize", "new": "roundcube_environment_variables_upload_max_filesize" }
+    - { "old": "roundcube_aspell_dicts", "new": "roundcube_environment_variables_aspell_dicts" }
 
 - name: Fail if required Roundcube settings not defined
   ansible.builtin.fail:
@@ -31,8 +38,8 @@
     - roundcube_path_prefix
     - roundcube_container_network
     - roundcube_database_type
-    - roundcube_default_imap_host
-    - roundcube_smtp_server
+    - roundcube_environment_variables_default_imap_host
+    - roundcube_environment_variables_smtp_server
 
 - name: Fail if Roundcube database type invalid
   ansible.builtin.fail:
