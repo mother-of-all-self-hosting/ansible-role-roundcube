@@ -24,11 +24,11 @@ roundcube_version: 1.6.14
 # The image variant to use.  We choose the 'apache' variant because
 # 'fpm' and 'fpm-alpine' can introduce security concerns if the user
 # chooses to publish the container port.
-roundcube_variant: 'apache'
+roundcube_variant: 'apache-nonroot'
 
-# The roundcube entrypoint script expects to be run as root.
-roundcube_uid: '0'
-roundcube_gid: '0'
+# See: https://github.com/roundcube/roundcubemail-docker/blob/master/apache/Dockerfile
+roundcube_uid: "{{ 'www-data' if roundcube_variant == 'apache-nonroot' else '0' }}"
+roundcube_gid: "{{ 'www-data' if roundcube_variant == 'apache-nonroot' else '0' }}"
 
 # The hostname at which Roundcube is served.
 roundcube_hostname: ""
@@ -56,7 +56,7 @@ roundcube_container_network_deletion_enabled: true
 roundcube_container_http_host_bind_port: ""
 
 # The port number in the container
-roundcube_container_http_port: 80
+roundcube_container_http_port: "{{ '8000' if roundcube_variant == 'apache-nonroot' else '80' }}"
 
 # A list of additional container networks that the container would be connected to.
 # The role does not create these networks, so make sure they already exist.
