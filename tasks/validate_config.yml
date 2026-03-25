@@ -51,21 +51,57 @@
   ansible.builtin.fail:
     msg: >-
       You need to define a required configuration setting (`{{ item }}`) when `roundcube_database_type` is `mysql`
-  when: "roundcube_database_type == 'mysql' and item.when | bool and lookup('vars', item.name, default='') | string | length == 0"
+  when: "roundcube_database_type == 'mysql' and lookup('vars', item, default='') | string | length == 0"
   with_items:
-    - { "name": "roundcube_database_mysql_socket_path_host", when: "{{ roundcube_database_mysql_socket_enabled }}" }
-    - { "name": "roundcube_database_mysql_hostname", when: "{{ not roundcube_database_mysql_socket_enabled }}" }
-    - { "name": "roundcube_database_mysql_password", when: true }
+    - roundcube_database_mysql_password
+
+- name: Fail if MySQL socket host path is missing when Unix socket is enabled
+  ansible.builtin.fail:
+    msg: >-
+      You need to define `roundcube_database_mysql_socket_path_host` when `roundcube_database_type` is `mysql`
+      and `roundcube_database_mysql_socket_enabled` is `true`.
+  when: >-
+    roundcube_database_type == 'mysql' and
+    roundcube_database_mysql_socket_enabled and
+    roundcube_database_mysql_socket_path_host | string | length == 0
+
+- name: Fail if MySQL hostname is missing when Unix socket is disabled
+  ansible.builtin.fail:
+    msg: >-
+      You need to define `roundcube_database_mysql_hostname` when `roundcube_database_type` is `mysql`
+      and `roundcube_database_mysql_socket_enabled` is `false`.
+  when: >-
+    roundcube_database_type == 'mysql' and
+    not roundcube_database_mysql_socket_enabled and
+    roundcube_database_mysql_hostname | string | length == 0
 
 - name: Fail if required Roundcube + Postgres integration settings not defined
   ansible.builtin.fail:
     msg: >-
       You need to define a required configuration setting (`{{ item }}`) when `roundcube_database_type` is `postgres`
-  when: "roundcube_database_type == 'postgres' and item.when | bool and lookup('vars', item.name, default='') | string | length == 0"
+  when: "roundcube_database_type == 'postgres' and lookup('vars', item, default='') | string | length == 0"
   with_items:
-    - { "name": "roundcube_database_postgres_socket_path_host", when: "{{ roundcube_database_postgres_socket_enabled }}" }
-    - { "name": "roundcube_database_postgres_hostname", when: "{{ not roundcube_database_postgres_socket_enabled }}" }
-    - { "name": "roundcube_database_postgres_password", when: true }
+    - roundcube_database_postgres_password
+
+- name: Fail if Postgres socket host path is missing when Unix socket is enabled
+  ansible.builtin.fail:
+    msg: >-
+      You need to define `roundcube_database_postgres_socket_path_host` when `roundcube_database_type` is `postgres`
+      and `roundcube_database_postgres_socket_enabled` is `true`.
+  when: >-
+    roundcube_database_type == 'postgres' and
+    roundcube_database_postgres_socket_enabled and
+    roundcube_database_postgres_socket_path_host | string | length == 0
+
+- name: Fail if Postgres hostname is missing when Unix socket is disabled
+  ansible.builtin.fail:
+    msg: >-
+      You need to define `roundcube_database_postgres_hostname` when `roundcube_database_type` is `postgres`
+      and `roundcube_database_postgres_socket_enabled` is `false`.
+  when: >-
+    roundcube_database_type == 'postgres' and
+    not roundcube_database_postgres_socket_enabled and
+    roundcube_database_postgres_hostname | string | length == 0
 
 - name: Run if Traefik is enabled
   when: roundcube_container_labels_traefik_enabled | bool
