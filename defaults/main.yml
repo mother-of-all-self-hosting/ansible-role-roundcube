@@ -241,6 +241,12 @@ roundcube_container_cleanup_command: |
   echo "Failed to remove stale container {{ roundcube_identifier }} after {{ roundcube_container_cleanup_timeout_seconds }} attempts" >&2;
   exit 1
 
+########################################################################
+#                                                                      #
+# database                                                             #
+#                                                                      #
+########################################################################
+
 # Specify a database driver to use
 # Valid values: mysql, postgres, sqlite
 roundcube_database_type: ""
@@ -255,6 +261,35 @@ roundcube_database_postgres_port: 5432
 roundcube_database_postgres_username: roundcube
 roundcube_database_postgres_password: ""
 roundcube_database_name: roundcube
+
+# Control if the database connection to MySQL is made via a Unix socket
+roundcube_database_mysql_socket_enabled: true
+
+# Specify the path to the MySQL Unix socket path inside the Roundcube container
+roundcube_database_mysql_socket_path_container: /run-mysqld
+
+# Specify the path to the MySQL Unix socket path on the host (bind-mount source)
+roundcube_database_mysql_socket_path_host: ""
+
+# Control if the database connection to Postgres is made via a Unix socket
+roundcube_database_postgres_socket_enabled: true
+
+# Specify the path to the Postgres Unix socket path inside the Roundcube container
+roundcube_database_postgres_socket_path_container: /run-postgres
+
+# Specify the path to the Postgres Unix socket path on the host (bind-mount source)
+roundcube_database_postgres_socket_path_host: ""
+
+# Specify database host address and port or absolute path for Unix socket
+# See: https://github.com/roundcube/roundcubemail/issues/7579
+roundcube_database_environment_variables_database_host_mysql: "{{ 'unix(' + roundcube_database_mysql_socket_path_container + '/mysqld.sock)' if roundcube_database_mysql_socket_enabled else roundcube_database_mysql_hostname + ':' + roundcube_database_mysql_port }}"
+roundcube_database_environment_variables_database_host_postgres: "{{ 'unix(' + roundcube_database_postgres_socket_path_container + ')' if roundcube_database_postgres_socket_enabled else roundcube_database_postgres_hostname + ':' + roundcube_database_postgres_port }}"
+
+########################################################################
+#                                                                      #
+# /database                                                            #
+#                                                                      #
+########################################################################
 
 # Specify the timezone
 roundcube_environment_variables_tz: UTC

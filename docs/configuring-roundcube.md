@@ -79,7 +79,31 @@ roundcube_database_type: postgres
 
 Set `mysql` to use a MySQL compatible database and `sqlite` to use SQLite, respectively. The SQLite database is stored in the directory specified with `roundcube_database_path`.
 
-For other settings, check variables such as `roundcube_database_*` on [`defaults/main.yml`](../defaults/main.yml).
+For other settings, check variables such as `roundcube_database_postgres_*` and `roundcube_database_mysql_*` on [`defaults/main.yml`](../defaults/main.yml).
+
+### Configuring connection to database server (optional)
+
+By default the role is configured to establish connection with the database server via the Unix socket. You can mount the Unix socket by adding the following configuration to your `vars.yml` file:
+
+```yaml
+# Specify the path to the MySQL compatible server's Unix socket path on the host (bind-mount source)
+roundcube_database_mysql_socket_path_host: ""
+
+# Specify the path to the Postgres Unix socket path on the host (bind-mount source)
+roundcube_database_postgres_socket_path_host: ""
+```
+
+Setting it enables to connect to the database server via Unix socket mounted in the container.
+
+If TCP connection is preferred, connection via the Unix socket can be disabled by adding the following configuration to your `vars.yml` file:
+
+```yaml
+# Disable the connection to the MySQL compatible server via a Unix socket
+roundcube_database_mysql_socket_enabled: false
+
+# Disable the connection to the Postgres server via a Unix socket
+roundcube_database_postgres_socket_enabled: false
+```
 
 ### Specify IMAP and SMTP servers
 

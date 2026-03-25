@@ -51,19 +51,21 @@
   ansible.builtin.fail:
     msg: >-
       You need to define a required configuration setting (`{{ item }}`) when `roundcube_database_type` is `mysql`
-  when: "roundcube_database_type == 'mysql' and lookup('vars', item, default='') | string | length == 0"
+  when: "roundcube_database_type == 'mysql' and item.when | bool and lookup('vars', item.name, default='') | string | length == 0"
   with_items:
-    - roundcube_database_mysql_hostname
-    - roundcube_database_mysql_password
+    - { "name": "roundcube_database_mysql_socket_path_host", when: "{{ roundcube_database_mysql_socket_enabled }}" }
+    - { "name": "roundcube_database_mysql_hostname", when: "{{ not roundcube_database_mysql_socket_enabled }}" }
+    - { "name": "roundcube_database_mysql_password", when: true }
 
 - name: Fail if required Roundcube + Postgres integration settings not defined
   ansible.builtin.fail:
     msg: >-
       You need to define a required configuration setting (`{{ item }}`) when `roundcube_database_type` is `postgres`
-  when: "roundcube_database_type == 'postgres' and lookup('vars', item, default='') | string | length == 0"
+  when: "roundcube_database_type == 'postgres' and item.when | bool and lookup('vars', item.name, default='') | string | length == 0"
   with_items:
-    - roundcube_database_postgres_hostname
-    - roundcube_database_postgres_password
+    - { "name": "roundcube_database_postgres_socket_path_host", when: "{{ roundcube_database_postgres_socket_enabled }}" }
+    - { "name": "roundcube_database_postgres_hostname", when: "{{ not roundcube_database_postgres_socket_enabled }}" }
+    - { "name": "roundcube_database_postgres_password", when: true }
 
 - name: Run if Traefik is enabled
   when: roundcube_container_labels_traefik_enabled | bool
