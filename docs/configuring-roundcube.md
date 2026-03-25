@@ -77,7 +77,7 @@ To use Postgres, add the following configuration to your `vars.yml` file:
 roundcube_database_type: postgres
 ```
 
-Set `mysql` to use a MySQL compatible database, and `sqlite` to use SQLite. The SQLite database is stored in the directory specified with `roundcube_database_path`.
+Set `mysql` to use a MySQL compatible database and `sqlite` to use SQLite, respectively. The SQLite database is stored in the directory specified with `roundcube_database_path`.
 
 For other settings, check variables such as `roundcube_database_*` on [`defaults/main.yml`](../defaults/main.yml).
 
