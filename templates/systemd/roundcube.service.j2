@@ -49,10 +49,10 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       {% if roundcube_database_type == 'sqlite' %}
       --mount type=bind,src={{ roundcube_database_path }},dst=/var/roundcube/db \
       {% endif %}
-      {% if roundcube_database_mysql_socket_enabled %}
+      {% if roundcube_database_mysql_socket_enabled and roundcube_database_mysql_socket_path_host != '' %}
       --mount type=bind,src={{ roundcube_database_mysql_socket_path_host }},dst={{ roundcube_database_mysql_socket_path_container }} \
       {% endif %}
-      {% if roundcube_database_postgres_socket_enabled %}
+      {% if roundcube_database_postgres_socket_enabled and roundcube_database_postgres_socket_path_host != '' %}
       --mount type=bind,src={{ roundcube_database_postgres_socket_path_host }},dst={{ roundcube_database_postgres_socket_path_container }} \
       {% endif %}
       {% for volume in roundcube_container_additional_volumes %}
