@@ -86,7 +86,7 @@
   register: roundcube_database_path_stat
 
 # We just want to notify the user. Deleting data is too destructive.
-- name: Notify if Roundcube SQLite database remains
+- name: Inject the message about the remaining Roundcube SQLite database path
   when: roundcube_database_path_stat.stat.exists | bool
   ansible.builtin.set_fact:
     devture_playbook_runtime_messages_list: |
