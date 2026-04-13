@@ -280,10 +280,10 @@ roundcube_database_postgres_socket_path_container: /run-postgres
 # Specify the path to the Postgres Unix socket path on the host (bind-mount source)
 roundcube_database_postgres_socket_path_host: ""
 
-# Specify database host address and port or absolute path for Unix socket
+# Specify database host address or absolute path for Unix socket
 # See: https://github.com/roundcube/roundcubemail/issues/7579
-roundcube_database_environment_variables_database_host_mysql: "{{ 'unix(' + roundcube_database_mysql_socket_path_container + '/mysqld.sock)' if roundcube_database_mysql_socket_enabled else roundcube_database_mysql_hostname + ':' + roundcube_database_mysql_port }}"
-roundcube_database_environment_variables_database_host_postgres: "{{ 'unix(' + roundcube_database_postgres_socket_path_container + ')' if roundcube_database_postgres_socket_enabled else roundcube_database_postgres_hostname + ':' + roundcube_database_postgres_port }}"
+roundcube_database_environment_variables_database_host_mysql: "{{ 'unix(' + roundcube_database_mysql_socket_path_container + '/mysqld.sock)' if roundcube_database_mysql_socket_enabled else roundcube_database_mysql_hostname }}"
+roundcube_database_environment_variables_database_host_postgres: "{{ 'unix(' + roundcube_database_postgres_socket_path_container + ')' if roundcube_database_postgres_socket_enabled else roundcube_database_postgres_hostname }}"
 
 ########################################################################
 #                                                                      #
