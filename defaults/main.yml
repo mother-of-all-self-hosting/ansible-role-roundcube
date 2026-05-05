@@ -42,7 +42,6 @@ roundcube_container_image_tag: "{{ roundcube_version }}-{{ roundcube_variant }}"
 roundcube_container_image_registry_prefix: "{{ roundcube_container_image_registry_prefix_upstream }}"
 roundcube_container_image_registry_prefix_upstream: "{{ roundcube_container_image_registry_prefix_upstream_default }}"
 roundcube_container_image_registry_prefix_upstream_default: docker.io/
-roundcube_container_image_force_pull: "{{ roundcube_container_image.endswith(':latest') }}"
 
 roundcube_container_image_self_build: false
 roundcube_container_image_self_build_name: "roundcube/roundcubemail-nonroot:{{ roundcube_container_image_self_build_repo_version }}"

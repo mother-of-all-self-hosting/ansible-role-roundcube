@@ -24,6 +24,7 @@
     - { "old": "roundcube_plugins", "new": "roundcube_environment_variables_plugins" }
     - { "old": "roundcube_upload_max_filesize", "new": "roundcube_environment_variables_upload_max_filesize" }
     - { "old": "roundcube_aspell_dicts", "new": "roundcube_environment_variables_aspell_dicts" }
+    - { "old": "roundcube_container_image_force_pull", "new": "<removed> (the new community.docker.docker_image_pull module handles this natively)" }
 
 - name: Fail if required Roundcube settings not defined
   ansible.builtin.fail:
