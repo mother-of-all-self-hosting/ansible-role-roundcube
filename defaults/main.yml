@@ -93,6 +93,9 @@ roundcube_container_labels_traefik_priority: 0
 roundcube_container_labels_traefik_entrypoints: web-secure
 roundcube_container_labels_traefik_tls: "{{ roundcube_container_labels_traefik_entrypoints != 'web' }}"
 roundcube_container_labels_traefik_tls_certResolver: default  # noqa var-naming
+roundcube_container_labels_traefik_middleware_basic_auth_enabled: false
+# See: https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/basicauth/
+roundcube_container_labels_traefik_middleware_basic_auth_users: ""
 
 # Controls which additional headers to attach to all HTTP requests.
 # To add your own custom request headers, use `roundcube_container_labels_traefik_additional_request_headers_custom`
