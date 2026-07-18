@@ -1,7 +1,9 @@
 ---
 galaxy_info:
   author: Sergio Durigan Junior
+  company: mash
   role_name: roundcube
+  namespace: mash
   description: Roundcube webmail
   platforms:
     - name: Debian
