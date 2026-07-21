@@ -46,7 +46,7 @@ roundcube_container_image_registry_prefix_upstream_default: docker.io/
 roundcube_container_image_self_build: false
 roundcube_container_image_self_build_name: "roundcube/roundcubemail-nonroot:{{ roundcube_container_image_self_build_repo_version }}"
 roundcube_container_image_self_build_repo: "https://github.com/roundcube/roundcubemail-docker.git"
-roundcube_container_image_self_build_repo_version: "{{ roundcube_version if roundcube_version != 'latest' else 'main' }}"
+roundcube_container_image_self_build_repo_version: master
 roundcube_container_image_self_build_src_files_path: "{{ roundcube_base_path }}/docker-src"
 
 # The base container network. It will be auto-created by this role if it doesn't exist already.
