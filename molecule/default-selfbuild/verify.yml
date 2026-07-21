@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: 2026 Suguru Hirahara
+# SPDX-FileCopyrightText: 2026 spatterlight
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Verify Roundcube systemd service
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Wait for Roundcube service to become active (up to 180s)
+      ansible.builtin.systemd:
+        name: roundcube.service
+      register: roundcube_service
+      until: roundcube_service.status.ActiveState == 'active'
+      retries: 36
+      delay: 5
+
+    - name: Assert Roundcube service is active
+      ansible.builtin.assert:
+        that: roundcube_service.status.ActiveState == 'active'
+        fail_msg: "roundcube.service not active ({{ roundcube_service.status.ActiveState }})"
+        success_msg: "roundcube.service is active"
+
+    - name: Retrieve Roundcube service log for debugging
+      when: roundcube_debug_service_enabled | bool
+      ansible.builtin.command:
+        cmd: journalctl -xeu roundcube.service
+      changed_when: false
+
+    - name: Wait for Roundcube HTTP endpoint to respond (up to 10m)
+      ansible.builtin.uri:
+        url: "http://localhost:8000/"
+        method: GET
+        status_code: [200, 302]
+        follow_redirects: none
+      register: roundcube_endpoint
+      until: roundcube_endpoint.status in [200, 302]
+      retries: 120
+      delay: 5
+
+    - name: Assert Roundcube HTTP endpoint responds
+      ansible.builtin.assert:
+        that: roundcube_endpoint.status in [200, 302]
+        fail_msg: "Roundcube did not respond as expected ({{ roundcube_endpoint.status | default('no response') }})"
+        success_msg: "Roundcube responded with {{ roundcube_endpoint.status }}"
+
+    - name: Show Roundcube systemd service status summary
+      ansible.builtin.debug:
+        msg:
+          - "Roundcube systemd: {{ roundcube_service.status.ActiveState }}"
+          - "Roundcube HTTP: {{ roundcube_endpoint.status }}"
