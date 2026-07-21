@@ -49,6 +49,10 @@ Currently these testing scenarios are available:
 
 Tests a standard Roundcube installation.
 
+### `mariadb`
+
+Tests a standard Roundcube installation with the MariaDB database.
+
 ### `postgres`
 
 Tests a standard Roundcube installation with the Postgres database.
