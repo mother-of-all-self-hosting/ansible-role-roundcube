@@ -37,9 +37,9 @@ provisioner:
         roundcube_hostname: localhost
         roundcube_container_labels_traefik_enabled: false
         roundcube_container_http_host_bind_port: 8000
-        roundcube_database_type: sqlite
         roundcube_environment_variables_default_imap_host: tls://example.com
         roundcube_environment_variables_smtp_server: tls://example.com
+        roundcube_database_type: sqlite
   env:
     # Workaround for https://github.com/ansible/molecule/issues/4391
     ANSIBLE_ROLES_PATH: ${MOLECULE_PROJECT_DIRECTORY}/..:/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles:~/.ansible/roles
