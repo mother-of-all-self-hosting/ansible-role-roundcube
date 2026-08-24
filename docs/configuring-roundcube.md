@@ -147,6 +147,21 @@ ansible-playbook -i inventory/hosts setup.yml --tags=setup-all,start
 
 If you use the MASH playbook, the shortcut commands with the [`just` program](https://github.com/mother-of-all-self-hosting/mash-playbook/blob/main/docs/just.md) are also available: `just install-all` or `just setup-all`
 
+### Upgrading from Roundcube 1.6.x to 1.7.x
+
+Roundcube 1.7 migrates the database schema on first start. No manual step is required — the
+container's entrypoint runs `bin/installto.sh` and `bin/initdb.sh --update` automatically.
+
+> [!WARNING]
+> **Back up your database before upgrading.** The migration renames the `session.changed`
+> column to `session.expires_at`, which Roundcube 1.6.x cannot read, and Roundcube ships no
+> down-migrations.
+>
+> Setting `roundcube_version` back to a 1.6.x value afterwards does **not** roll the
+> installation back: the persisted `/var/www/html` volume keeps the 1.7 code and
+> `installto.sh` refuses to downgrade. Going back requires wiping `roundcube_html_path`
+> **and** restoring the database from a backup.
+
 ## Usage
 
 After running the command for installation, Roundcube becomes available at the specified hostname like `https://example.com`.
