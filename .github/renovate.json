@@ -2,5 +2,13 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "github>mother-of-all-self-hosting/renovate-config#v1.0.0"
+  ],
+  "packageRules": [
+    {
+      "description": "Roundcube publishes no plain version tags: every release is tagged per image flavour (`1.7.3-apache-nonroot`, `1.7.3-fpm`, ...), and semver reads the flavour as a pre-release, so `roundcube_version` has never seen an update. Extracting the version out of the flavour that this role actually deploys makes those releases visible again.",
+      "matchManagers": ["custom.regex"],
+      "matchDepNames": ["roundcube/roundcubemail"],
+      "extractVersion": "^(?<version>\\d+\\.\\d+\\.\\d+)-apache-nonroot$"
+    }
   ]
 }

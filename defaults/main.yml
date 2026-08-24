@@ -18,6 +18,10 @@ roundcube_config_path: "{{ roundcube_base_path }}/config"
 roundcube_database_path: "{{ roundcube_base_path }}/sqlite"
 roundcube_tmp_path: "{{ roundcube_base_path }}/tmp"
 
+# Roundcube tags no plain versions on Docker Hub - every release is published
+# once per image flavour. `.github/renovate.json` therefore carries a rule that
+# recovers the version from the `-apache-nonroot` tags; keep the flavour named
+# there in step with `roundcube_variant` below, or updates stop being found.
 # renovate: datasource=docker depName=roundcube/roundcubemail versioning=semver
 roundcube_version: 1.6.14
 
