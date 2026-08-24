@@ -23,7 +23,7 @@ roundcube_tmp_path: "{{ roundcube_base_path }}/tmp"
 # recovers the version from the `-apache-nonroot` tags; keep the flavour named
 # there in step with `roundcube_variant` below, or updates stop being found.
 # renovate: datasource=docker depName=roundcube/roundcubemail versioning=semver
-roundcube_version: 1.6.14
+roundcube_version: 1.7.3
 
 # The image variant to use.  We choose the 'apache' variant because
 # 'fpm' and 'fpm-alpine' can introduce security concerns if the user
