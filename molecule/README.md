@@ -41,6 +41,18 @@ source ./molecule/venv/bin/activate
 pip3 install -r ./molecule/requirements.txt
 ```
 
+## What the scenarios check
+
+Roundcube is a mail client, so a running Roundcube on its own proves very little — the upstream container image with no configuration at all still serves a login page. Every scenario therefore starts a throwaway [GreenMail](https://greenmail-mail-test.github.io/greenmail/) mail server on the role's own container network and climbs the same ladder:
+
+1. the login page renders, rather than a PHP or database error page
+2. the version the running Roundcube reports matches the image tag the role deployed
+3. the IMAP and SMTP servers the role configured are in the configuration that the Roundcube process loads
+4. a login as a real mailbox user completes, and the mail server logs the IMAP authentication
+5. the identity that the first login wrote to the database is served back through the settings page
+
+Rungs 4 and 5 are the ones that cannot pass by accident: they need the role's configuration to reach the PHP process, the container network to carry the IMAP connection, and the scenario's database to accept a write and return it.
+
 ## Scenarios
 
 Currently these testing scenarios are available:

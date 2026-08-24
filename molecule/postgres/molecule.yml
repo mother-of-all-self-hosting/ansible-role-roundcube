@@ -37,8 +37,28 @@ provisioner:
         roundcube_hostname: localhost
         roundcube_container_labels_traefik_enabled: false
         roundcube_container_http_host_bind_port: 8000
-        roundcube_environment_variables_default_imap_host: tls://example.com
-        roundcube_environment_variables_smtp_server: tls://example.com
+        # Molecule's side-effect and verify plays run outside the role and so do
+        # not see its defaults. These two are restated here because both plays
+        # need to name the container and the network that the role creates.
+        roundcube_identifier: roundcube
+        roundcube_container_network: roundcube
+
+        # A throwaway mail server that the tests log into through Roundcube. It
+        # runs on the role's own container network, so Roundcube reaches it by
+        # container name through Docker's embedded DNS. Plaintext IMAP/SMTP on
+        # purpose: the helper's TLS ports present a self-signed certificate that
+        # Roundcube would rightly refuse.
+        roundcube_molecule_imap_helper_image: docker.io/greenmail/standalone:2.1.7
+        roundcube_molecule_imap_helper_container_name: roundcube-molecule-postgres-imap
+        roundcube_molecule_imap_helper_imap_port: 3143
+        roundcube_molecule_imap_helper_smtp_port: 3025
+        roundcube_molecule_imap_helper_username: molecule
+        roundcube_molecule_imap_helper_password: molecule-password
+
+        roundcube_environment_variables_default_imap_host: "{{ roundcube_molecule_imap_helper_container_name }}"
+        roundcube_environment_variables_default_imap_port: "{{ roundcube_molecule_imap_helper_imap_port }}"
+        roundcube_environment_variables_smtp_server: "{{ roundcube_molecule_imap_helper_container_name }}"
+        roundcube_environment_variables_smtp_port: "{{ roundcube_molecule_imap_helper_smtp_port }}"
 
         # Variables required for Roundcube to connect to the Postgres database (via Unix socket)
         roundcube_database_type: postgres
