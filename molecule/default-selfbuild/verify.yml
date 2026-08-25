@@ -81,7 +81,7 @@
     # application defines for itself, read out of the running container.
     - name: Inspect the Roundcube container
       ansible.builtin.command:
-        cmd: "docker inspect {{ roundcube_identifier }}"
+        cmd: "docker container inspect {{ roundcube_identifier }}"
       register: roundcube_container_inspect
       changed_when: false
 
