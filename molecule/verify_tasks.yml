@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+---
 - name: Wait for Roundcube service to become active (up to 180s)
   ansible.builtin.systemd:
     name: "{{ roundcube_identifier }}.service"
