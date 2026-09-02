@@ -1,0 +1,233 @@
+# SPDX-FileCopyrightText: 2026 spatterlight
+# SPDX-FileCopyrightText: 2026 Suguru Hirahara
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+- name: Wait for Roundcube service to become active (up to 180s)
+  ansible.builtin.systemd:
+    name: "{{ roundcube_identifier }}.service"
+  register: roundcube_service
+  until: roundcube_service.status.ActiveState == 'active'
+  retries: 36
+  delay: 5
+
+- name: Assert Roundcube service is active
+  ansible.builtin.assert:
+    that: roundcube_service.status.ActiveState == 'active'
+    fail_msg: "{{ roundcube_identifier }}.service not active ({{ roundcube_service.status.ActiveState }})"
+    success_msg: "{{ roundcube_identifier }}.service is active"
+
+- name: Retrieve Roundcube service log for debugging
+  when: roundcube_debug_service_enabled | bool
+  ansible.builtin.command:
+    cmd: "journalctl -xeu {{ roundcube_identifier }}.service"
+  changed_when: false
+
+############################################################
+#
+# Rung 1: Roundcube serves a login page that really rendered
+#
+############################################################
+
+# A liveness gate, not proof that the role configured anything: the upstream
+# image with no environment at all also answers 200 with this page (it falls
+# back to an internal SQLite database). What it does rule out is a PHP fatal
+# error or a database error page, both of which Roundcube serves as a 500.
+#
+# In the database-backed scenarios it additionally proves the database is
+# reachable, because the image's entrypoint waits for the database port and
+# never starts Apache if it stays shut.
+- name: Wait for the Roundcube login page to render (up to 10m)
+  ansible.builtin.uri:
+    url: "{{ roundcube_verify_base_url }}/"
+    method: GET
+    status_code: [200, 301, 302, 401, 403, 500, 502, 503]
+    follow_redirects: none
+    return_content: true
+  register: roundcube_login_page
+  until: roundcube_login_page.status == 200
+  retries: 120
+  delay: 5
+
+- name: Assert the Roundcube login page rendered
+  ansible.builtin.assert:
+    that:
+      - roundcube_login_page.status == 200
+      - "'rcmloginuser' in roundcube_login_page.content"
+      - "'rcmloginpwd' in roundcube_login_page.content"
+    fail_msg: "Roundcube did not render a login page (HTTP {{ roundcube_login_page.status }}, {{ roundcube_login_page.content | default('') | length }} bytes)"
+    success_msg: "Roundcube rendered a login page (HTTP {{ roundcube_login_page.status }})"
+
+####################################################################
+#
+# Rung 2: the running Roundcube is the version the image tag names
+#
+####################################################################
+
+# Neither the served pages nor the response headers carry a Roundcube
+# version (verified against the image: the headers name only Apache and
+# PHP), so the honest surface for this is the version constant the
+# application defines for itself, read out of the running container.
+- name: Inspect the Roundcube container
+  ansible.builtin.command:
+    cmd: "docker container inspect {{ roundcube_identifier }}"
+  register: roundcube_container_inspect
+  changed_when: false
+
+- name: Read the version the running Roundcube reports
+  ansible.builtin.command:
+    cmd: "docker exec {{ roundcube_identifier }} grep -m1 RCMAIL_VERSION /var/www/html/program/include/iniset.php"
+  register: roundcube_reported_version_result
+  changed_when: false
+
+- name: Determine the Roundcube image and version in play
+  ansible.builtin.set_fact:
+    roundcube_deployed_image: "{{ (roundcube_container_inspect.stdout | from_json)[0].Config.Image }}"
+    roundcube_reported_version: "{{ roundcube_reported_version_result.stdout | regex_search(\"RCMAIL_VERSION',\\s*'([^']+)'\", '\\1') | first }}"
+
+# Comparing the two against each other, rather than against a version
+# written down here, keeps the assert meaningful after a Renovate bump
+# without anything in the test needing to be bumped alongside it. It fails
+# exactly when it should: when `roundcube_container_image_tag` is composed
+# wrongly and the deployed image is not the release the role asked for.
+- name: Assert the running Roundcube is the release its image tag names
+  when: not (roundcube_container_image_self_build | default(false) | bool)
+  ansible.builtin.assert:
+    that:
+      - "'roundcube/roundcubemail' in roundcube_deployed_image"
+      - "roundcube_reported_version in roundcube_deployed_image"
+    fail_msg: "Roundcube reports version {{ roundcube_reported_version }}, which the deployed image tag {{ roundcube_deployed_image }} does not name"
+    success_msg: "Roundcube {{ roundcube_reported_version }} is running from {{ roundcube_deployed_image }}"
+
+- name: Assert the self-built Roundcube image is the one in use
+  when: roundcube_container_image_self_build | default(false) | bool
+  ansible.builtin.assert:
+    that: "'roundcube/roundcubemail-nonroot' in roundcube_deployed_image"
+    fail_msg: "Self-building was requested, but the container runs {{ roundcube_deployed_image }}"
+    success_msg: "Roundcube {{ roundcube_reported_version }} is running from self-built {{ roundcube_deployed_image }}"
+
+#############################################################
+#
+# Rung 3: role configuration reached the running PHP process
+#
+#############################################################
+
+# The image's entrypoint turns the role's `env` file into the PHP config
+# that Roundcube loads on every request, so this is where a role-templated
+# value becomes something the application actually acts on.
+- name: Read the runtime configuration the Roundcube process loads
+  ansible.builtin.command:
+    cmd: "docker exec {{ roundcube_identifier }} cat /var/www/html/config/config.docker.inc.php"
+  register: roundcube_runtime_config
+  changed_when: false
+
+- name: Assert the role-configured mail servers reached the Roundcube configuration
+  ansible.builtin.assert:
+    that:
+      - "(roundcube_molecule_imap_helper_container_name ~ ':' ~ roundcube_molecule_imap_helper_imap_port) in roundcube_runtime_config.stdout"
+      - "(roundcube_molecule_imap_helper_container_name ~ ':' ~ roundcube_molecule_imap_helper_smtp_port) in roundcube_runtime_config.stdout"
+    fail_msg: "The IMAP/SMTP servers the role configured are not in Roundcube's runtime configuration"
+    success_msg: "Roundcube is configured to talk to {{ roundcube_molecule_imap_helper_container_name }}"
+
+##################################################################
+#
+# Rung 4: a real login, all the way into the real IMAP server
+#
+##################################################################
+
+# This is the rung that cannot be faked. Completing it requires Roundcube to
+# take the host the role configured, open an IMAP connection to it over the
+# role's container network, authenticate, and write the new user and the
+# session into the database. A misconfigured IMAP host, an unreachable
+# helper or a broken database each stop it.
+- name: Extract the Roundcube request token
+  ansible.builtin.set_fact:
+    roundcube_request_token: "{{ roundcube_login_page.content | regex_search('\"request_token\":\"([^\"]+)\"', '\\1') | first }}"
+
+# Redirects are followed so that this ends on a 2xx: `uri` returns `cookies`
+# and `cookies_string` only for a 2xx response, and the next rung needs the
+# session cookies that a successful login hands out. Do not be tempted to
+# assert on the body that comes back here — the `Cookie` header set below is
+# re-sent verbatim on the followed request and shadows the fresh session, so
+# the followed page renders as if logged out even when the login worked.
+- name: Log in to Roundcube against the IMAP helper
+  ansible.builtin.uri:
+    url: "{{ roundcube_verify_base_url }}/?_task=login"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      _token: "{{ roundcube_request_token }}"
+      _task: login
+      _action: login
+      _timezone: UTC
+      _url: ""
+      _user: "{{ roundcube_molecule_imap_helper_username }}"
+      _pass: "{{ roundcube_molecule_imap_helper_password }}"
+    headers:
+      Cookie: "{{ roundcube_login_page.cookies_string }}"
+    status_code: [200, 302, 401, 403, 500, 503]
+    follow_redirects: all
+  register: roundcube_login_result
+
+# A rejected login stays on the login task and answers 401, so landing on
+# the mail task by way of a redirect is what separates success from failure.
+- name: Assert the Roundcube login succeeded
+  ansible.builtin.assert:
+    that:
+      - roundcube_login_result.status == 200
+      - roundcube_login_result.redirected
+      - "'_task=mail' in roundcube_login_result.url"
+      - roundcube_login_result.cookies.roundcube_sessauth is defined
+    fail_msg: "Logging in to Roundcube as {{ roundcube_molecule_imap_helper_username }} failed (HTTP {{ roundcube_login_result.status }} at {{ roundcube_login_result.url }})"
+    success_msg: "Logged in to Roundcube as {{ roundcube_molecule_imap_helper_username }} through {{ roundcube_molecule_imap_helper_container_name }}"
+
+- name: Assert the IMAP helper saw the Roundcube login
+  ansible.builtin.command:
+    cmd: "docker logs {{ roundcube_molecule_imap_helper_container_name }}"
+  register: roundcube_imap_helper_log
+  changed_when: false
+  failed_when: >-
+    ('Authenticating user ' ~ roundcube_molecule_imap_helper_username)
+    not in (roundcube_imap_helper_log.stdout ~ roundcube_imap_helper_log.stderr)
+
+###################################################################
+#
+# Rung 5: the database took the write and served it back
+#
+###################################################################
+
+# Roundcube creates a user and a matching identity in its database on the
+# first successful login. Reading that identity back through the settings
+# page is a full write-then-read round-trip against whichever database the
+# scenario wired up, and it needs no database credentials to observe.
+- name: Extract the Roundcube session token
+  ansible.builtin.set_fact:
+    roundcube_session_token: "{{ roundcube_login_result.url | regex_search('_token=([^&]+)', '\\1') | first }}"
+
+- name: Fetch the Roundcube identities the first login created
+  ansible.builtin.uri:
+    url: "{{ roundcube_verify_base_url }}/?_task=settings&_action=identities&_token={{ roundcube_session_token }}"
+    method: GET
+    headers:
+      Cookie: "{{ roundcube_login_result.cookies_string }}"
+    status_code: [200, 302, 401, 403, 500, 503]
+    follow_redirects: none
+    return_content: true
+  register: roundcube_identities
+
+- name: Assert the database served back the identity created at login
+  ansible.builtin.assert:
+    that:
+      - roundcube_identities.status == 200
+      - "(roundcube_molecule_imap_helper_username ~ '@' ~ roundcube_molecule_imap_helper_container_name) in roundcube_identities.content"
+    fail_msg: "Roundcube's database did not return the identity created for {{ roundcube_molecule_imap_helper_username }} (HTTP {{ roundcube_identities.status }})"
+    success_msg: "Roundcube's database returned the identity created for {{ roundcube_molecule_imap_helper_username }}"
+
+- name: Show Roundcube verification summary
+  ansible.builtin.debug:
+    msg:
+      - "Roundcube systemd: {{ roundcube_service.status.ActiveState }}"
+      - "Roundcube image: {{ roundcube_deployed_image }}"
+      - "Roundcube version: {{ roundcube_reported_version }}"
+      - "Roundcube login: HTTP {{ roundcube_login_result.status }} -> {{ roundcube_login_result.url }}"
+      - "Roundcube identities: HTTP {{ roundcube_identities.status }}"
