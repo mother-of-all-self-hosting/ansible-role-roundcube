@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 Slavi Pantaleev
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Ensure the IMAP helper container image is pulled for Roundcube Molecule tests
+  ansible.builtin.command:
+    cmd: "docker pull {{ roundcube_molecule_imap_helper_image }}"
+  register: roundcube_molecule_imap_helper_pull_result
+  changed_when: "'Downloaded newer image' in roundcube_molecule_imap_helper_pull_result.stdout"
+  retries: 5
+  delay: 10
+  until: roundcube_molecule_imap_helper_pull_result is not failed
+
+- name: Ensure a stale IMAP helper container for Roundcube Molecule tests is absent
+  ansible.builtin.command:
+    cmd: "docker rm -f {{ roundcube_molecule_imap_helper_container_name }}"
+  register: roundcube_molecule_imap_helper_removal_result
+  changed_when: roundcube_molecule_imap_helper_container_name in roundcube_molecule_imap_helper_removal_result.stdout
+  failed_when: false
+
+# `greenmail.setup.test.all` starts IMAP/IMAPS/SMTP/SMTPS/POP3/POP3S,
+# `greenmail.users` creates the mailbox the verify play logs into, and
+# `greenmail.verbose` makes the IMAP conversation show up in the container
+# log, which is what the readiness check below waits for.
+- name: Ensure the IMAP helper container for Roundcube Molecule tests is running
+  ansible.builtin.command:
+    cmd: >-
+      docker run -d
+      --name {{ roundcube_molecule_imap_helper_container_name }}
+      --network {{ roundcube_container_network }}
+      -e "GREENMAIL_OPTS=-Dgreenmail.setup.test.all -Dgreenmail.hostname=0.0.0.0
+      -Dgreenmail.users={{ roundcube_molecule_imap_helper_username }}:{{ roundcube_molecule_imap_helper_password }}
+      -Dgreenmail.verbose"
+      {{ roundcube_molecule_imap_helper_image }}
+  register: roundcube_molecule_imap_helper_run_result
+  changed_when: roundcube_molecule_imap_helper_run_result.rc == 0
+
+# The mailbox is created after the listeners come up, so waiting for it also
+# covers readiness. Waiting for the listeners alone would not: the IMAP
+# server announces itself first and the mailbox appears a moment later.
+- name: Wait for the IMAP helper for Roundcube Molecule tests to be ready (up to 120s)
+  ansible.builtin.command:
+    cmd: "docker logs {{ roundcube_molecule_imap_helper_container_name }}"
+  register: roundcube_molecule_imap_helper_log
+  changed_when: false
+  until: "('Creating user ' ~ roundcube_molecule_imap_helper_username) in (roundcube_molecule_imap_helper_log.stdout ~ roundcube_molecule_imap_helper_log.stderr)"
+  retries: 24
+  delay: 5
+
+- name: Assert the IMAP helper for Roundcube Molecule tests is listening
+  ansible.builtin.assert:
+    that: "'Started imap:' in (roundcube_molecule_imap_helper_log.stdout ~ roundcube_molecule_imap_helper_log.stderr)"
+    fail_msg: "The IMAP helper created the {{ roundcube_molecule_imap_helper_username }} mailbox but never announced an IMAP listener, so a Roundcube login could never succeed"
+    success_msg: "The IMAP helper is listening and the {{ roundcube_molecule_imap_helper_username }} mailbox exists"
