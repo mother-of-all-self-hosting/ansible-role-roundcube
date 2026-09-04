@@ -224,7 +224,7 @@
     fail_msg: "Roundcube's database did not return the identity created for {{ roundcube_molecule_imap_helper_username }} (HTTP {{ roundcube_identities.status }})"
     success_msg: "Roundcube's database returned the identity created for {{ roundcube_molecule_imap_helper_username }}"
 
-- name: Show Roundcube verification summary
+- name: Show the Roundcube verification summary
   ansible.builtin.debug:
     msg:
       - "Roundcube systemd: {{ roundcube_service.status.ActiveState }}"
