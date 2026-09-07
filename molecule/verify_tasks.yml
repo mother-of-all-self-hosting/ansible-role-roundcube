@@ -72,7 +72,7 @@
 - name: Inspect the Roundcube container
   ansible.builtin.command:
     cmd: "docker container inspect {{ roundcube_identifier }}"
-  register: roundcube_container_inspect
+  register: roundcube_container_raw
   changed_when: false
 
 - name: Read the version the running Roundcube reports
@@ -83,7 +83,7 @@
 
 - name: Determine the Roundcube image and version in play
   ansible.builtin.set_fact:
-    roundcube_deployed_image: "{{ (roundcube_container_inspect.stdout | from_json)[0].Config.Image }}"
+    roundcube_deployed_image: "{{ (roundcube_container_raw.stdout | from_json)[0].Config.Image }}"
     roundcube_reported_version: "{{ roundcube_reported_version_result.stdout | regex_search(\"RCMAIL_VERSION',\\s*'([^']+)'\", '\\1') | first }}"
 
 # Comparing the two against each other, rather than against a version
