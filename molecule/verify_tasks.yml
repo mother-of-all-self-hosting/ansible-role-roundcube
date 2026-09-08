@@ -27,7 +27,7 @@
 - name: Retrieve the Roundcube systemd service log for debugging
   when: roundcube_debug_service_enabled | bool
   ansible.builtin.command:
-    cmd: "journalctl -xeu {{ roundcube_identifier }}.service"
+    cmd: "journalctl --no-pager --output=cat --unit={{ roundcube_identifier }}.service"
   changed_when: false
 
 ############################################################
