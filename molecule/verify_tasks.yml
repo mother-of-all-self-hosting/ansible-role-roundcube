@@ -6,7 +6,7 @@
 ---
 - name: Wait for the Roundcube systemd service to become active (up to 180s)
   ansible.builtin.systemd_service:
-    name: "{{ roundcube_identifier }}.service"
+    name: roundcube.service
   register: roundcube_service
   until: roundcube_service.status.ActiveState == 'active'
   retries: 36
@@ -21,13 +21,13 @@
 - name: Assert the Roundcube systemd service is active
   ansible.builtin.assert:
     that: roundcube_service.status.ActiveState == 'active'
-    fail_msg: "{{ roundcube_identifier }}.service is not active ({{ roundcube_service.status.ActiveState }})"
-    success_msg: "{{ roundcube_identifier }}.service is active"
+    fail_msg: "roundcube.service is not active ({{ roundcube_service.status.ActiveState }})"
+    success_msg: "roundcube.service is active"
 
 - name: Retrieve the Roundcube systemd service log for debugging
   when: roundcube_debug_service_enabled | bool
   ansible.builtin.command:
-    cmd: "journalctl --no-pager --output=cat --unit={{ roundcube_identifier }}.service"
+    cmd: journalctl --no-pager --output=cat --unit=roundcube.service
   changed_when: false
 
 ############################################################
@@ -77,13 +77,13 @@
 # application defines for itself, read out of the running container.
 - name: Inspect the Roundcube container
   ansible.builtin.command:
-    cmd: "docker container inspect {{ roundcube_identifier }}"
+    cmd: docker container inspect roundcube
   register: roundcube_container_raw
   changed_when: false
 
 - name: Read the version the running Roundcube reports
   ansible.builtin.command:
-    cmd: "docker exec {{ roundcube_identifier }} grep -m1 RCMAIL_VERSION /var/www/html/program/include/iniset.php"
+    cmd: docker exec roundcube grep -m1 RCMAIL_VERSION /var/www/html/program/include/iniset.php
   register: roundcube_reported_version_result
   changed_when: false
 
@@ -124,7 +124,7 @@
 # value becomes something the application actually acts on.
 - name: Read the runtime configuration the Roundcube process loads
   ansible.builtin.command:
-    cmd: "docker exec {{ roundcube_identifier }} cat /var/www/html/config/config.docker.inc.php"
+    cmd: docker exec roundcube cat /var/www/html/config/config.docker.inc.php
   register: roundcube_runtime_config
   changed_when: false
 

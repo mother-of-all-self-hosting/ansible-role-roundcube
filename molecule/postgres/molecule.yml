@@ -40,7 +40,6 @@ provisioner:
         # Molecule's side-effect and verify plays run outside the role and so do
         # not see its defaults. These two are restated here because both plays
         # need to name the container and the network that the role creates.
-        roundcube_identifier: roundcube
         roundcube_container_network: roundcube
 
         # A throwaway mail server that the tests log into through Roundcube. It
