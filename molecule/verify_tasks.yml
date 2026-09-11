@@ -4,13 +4,14 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-- name: Wait for the Roundcube systemd service to become active (up to 180s)
+- name: Wait for the Roundcube systemd services to become active (up to 180s each)
   ansible.builtin.systemd_service:
-    name: roundcube.service
-  register: roundcube_service
-  until: roundcube_service.status.ActiveState == 'active'
+    name: "{{ item }}"
+  register: roundcube_services
+  until: roundcube_services.status.ActiveState == 'active'
   retries: 36
   delay: 5
+  loop: "{{ roundcube_verify_units }}"
   # So that giving up is reported by the assertion below rather than as a
   # wall of systemd unit properties.
   failed_when: false
@@ -18,17 +19,20 @@
 # `Restart=always` in the systemd unit means that even a container which crashes
 # and gets restarted reads as active here, so this is a precondition rather than
 # a result.
-- name: Assert the Roundcube systemd service is active
+- name: Assert the Roundcube systemd services are active
   ansible.builtin.assert:
-    that: roundcube_service.status.ActiveState == 'active'
-    fail_msg: "roundcube.service is not active ({{ roundcube_service.status.ActiveState }})"
-    success_msg: "roundcube.service is active"
+    that: roundcube_services.results | map(attribute='status.ActiveState') | unique | list == ['active']
+    fail_msg: >-
+      Not every service is active:
+      {{ dict(roundcube_verify_units | zip(roundcube_services.results | map(attribute='status.ActiveState'))) }}
+    success_msg: "Every systemd service is active"
 
-- name: Retrieve the Roundcube systemd service log for debugging
+- name: Retrieve the Roundcube systemd services log for debugging
   when: roundcube_debug_service_enabled | bool
   ansible.builtin.command:
-    cmd: journalctl --no-pager --output=cat --unit=roundcube.service
+    cmd: "journalctl --no-pager --output=cat --unit={{ item }}"
   changed_when: false
+  loop: "{{ roundcube_verify_units }}"
 
 ############################################################
 #
@@ -233,7 +237,7 @@
 - name: Show the Roundcube verification summary
   ansible.builtin.debug:
     msg:
-      - "Roundcube systemd: {{ roundcube_service.status.ActiveState }}"
+      - "Roundcube systemd: {% for unit, state in roundcube_verify_units | zip(roundcube_services.results | map(attribute='status.ActiveState')) %}{{ unit }} ({{ state }}){% if not loop.last %}, {% endif %}{% endfor %}"
       - "Roundcube image: {{ roundcube_deployed_image }}"
       - "Roundcube version: {{ roundcube_reported_version }}"
       - "Roundcube login: HTTP {{ roundcube_login_result.status }} -> {{ roundcube_login_result.url }}"

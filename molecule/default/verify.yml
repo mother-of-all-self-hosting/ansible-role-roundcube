@@ -13,6 +13,9 @@
   vars:
     roundcube_verify_base_url: "http://localhost:{{ roundcube_container_http_host_bind_port }}"
 
+    roundcube_verify_units:
+      - roundcube.service
+
   tasks:
     - name: Verify that Roundcube works
       block:
