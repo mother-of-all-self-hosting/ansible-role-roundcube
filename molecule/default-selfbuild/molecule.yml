@@ -30,6 +30,7 @@ provisioner:
       all:
         # Helper variables
         roundcube_debug_service_enabled: false
+        roundcube_restarts_check_enabled: true
 
         # Variables for Roundcube
         roundcube_uid: www-data
