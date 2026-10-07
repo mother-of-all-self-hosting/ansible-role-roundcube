@@ -314,11 +314,11 @@ roundcube_environment_variables_default_imap_host: ""
 # Defaults to 143
 roundcube_environment_variables_default_imap_port: ""
 
-# Specify hostname of the SMTP server to send mails
+# Specify SMTP server hostname
 # Add tls:// (STARTTLS) or ssl:// (SSL/TLS) as prefix to the host for encrypted connections
 roundcube_environment_variables_smtp_server: ""
 
-# Specify SMTP port number
+# Specify SMTP server port number
 # Defaults to 587
 roundcube_environment_variables_smtp_port: ""
 

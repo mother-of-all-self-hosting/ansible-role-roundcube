@@ -125,7 +125,7 @@ The port number of them can be specified with variables as below:
 # Specify IMAP port number
 roundcube_environment_variables_default_imap_port: 143
 
-# Specify SMTP port number
+# Specify SMTP server port number
 roundcube_environment_variables_smtp_port: 587
 ```
 
