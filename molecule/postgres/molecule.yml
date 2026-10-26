@@ -105,7 +105,7 @@ scenario:
     - create
     - prepare
     - converge
-    # Disable idempotence test for now due to ansible-role-postgres
+    # Disable idempotence test for now due to /roundcube/html being changed every time
     # - idempotence
     - side_effect
     - verify
