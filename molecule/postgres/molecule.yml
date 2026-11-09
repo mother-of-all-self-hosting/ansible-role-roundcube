@@ -69,8 +69,8 @@ provisioner:
 
         # Variables required for Roundcube to connect to the Postgres database (via Unix socket)
         roundcube_database_type: postgres
-        roundcube_database_postgres_username: my_database_username
-        roundcube_database_postgres_password: my_database_password
+        roundcube_database_postgres_username: /#@my_database_username?%
+        roundcube_database_postgres_password: /#@my_database_password?%
         roundcube_database_name: roundcube
         roundcube_database_postgres_socket_enabled: true
         roundcube_database_postgres_socket_path_host: "{{ postgres_run_path }}"

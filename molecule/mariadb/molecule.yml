@@ -69,8 +69,8 @@ provisioner:
 
         # Variables required for Roundcube to connect to the MariaDB database (via Unix socket)
         roundcube_database_type: mysql
-        roundcube_database_mysql_username: my_database_username
-        roundcube_database_mysql_password: my_database_password
+        roundcube_database_mysql_username: /#@my_database_username?%
+        roundcube_database_mysql_password: /#@my_database_password?%
         roundcube_database_name: roundcube
         roundcube_database_mysql_socket_enabled: true
         roundcube_database_mysql_socket_path_host: "{{ mariadb_run_path }}"
